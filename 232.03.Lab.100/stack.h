@@ -55,15 +55,19 @@ public:
 
    stack <T> & operator = (const stack <T> & rhs)
    {
-      return *this;
+       if (this != &rhs)
+         container = rhs.container;
+	   return *this;
    }
    stack <T>& operator = (stack <T> && rhs)
    {
-      return *this;
+       if (this != &rhs)
+         container = std::move(rhs.container);
+	   return *this;
    }
    void swap(stack <T>& rhs)
    {
-
+	   container.swap(rhs.container);
    }
 
    // 
@@ -92,10 +96,12 @@ public:
    //
 
    void pop() 
-   { 
-		if (empty())
-         return;
+   {
+      if (empty())
+        return;
       container.pop_back();
+      if (container.empty())
+        container.shrink_to_fit();
    }
 
    //

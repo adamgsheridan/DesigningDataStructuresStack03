@@ -22,6 +22,7 @@
 #include <vector>
 #include <list>
 
+
 class TestStack : public UnitTest
 {
 public:
@@ -69,8 +70,9 @@ public:
 
       // Delete
 
-		test_pop_empty();
-		test_pop_standard();
+      test_pop_empty();
+      test_pop_standard();
+      test_pop_one();
 
       // Status
       test_size_empty();
@@ -1200,6 +1202,29 @@ public:
       assertUnit(Spy::numCopyMove() == 0);
       assertUnit(Spy::numAssignMove() == 0);
       assertEmptyFixture(s);
+   }
+
+   void test_pop_one() {
+       // setup
+      //    +----+
+      //    | 26 |
+      //    +----+
+      custom::stack<Spy> s;
+      s.container.push_back(Spy(26));
+      Spy::reset();
+      // exercise
+      s.pop();
+      // verify
+      assertUnit(Spy::numDestructor() == 1); // destroy [26]
+      assertUnit(Spy::numDelete() == 1);     // delete  [26]
+      assertUnit(Spy::numCopy() == 0);
+      assertUnit(Spy::numAlloc() == 0);
+      assertUnit(Spy::numAssign() == 0);
+      assertUnit(Spy::numDefault() == 0);
+      assertUnit(Spy::numNondefault() == 0);
+      assertUnit(Spy::numCopyMove() == 0);
+      assertUnit(Spy::numAssignMove() == 0);
+	  assertEmptyFixture(s);
    }
    
    /*************************************************************
