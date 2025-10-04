@@ -11,19 +11,21 @@
 
 #include <cassert>
 
-enum { ALLOC,      // 0 allocations, number of times NEW is called
-       DELETE,     // 1 deletions, number of times DELETE is called
-       DEFAULT,    // 2 Spy::Spy()
-       NONDEFAULT, // 3 Spy::Spy(int)
-       COPY,       // 4 Spy::Spy(const Spy &)
-       COPY_MOVE,  // 5 Spy::Spy(Spy &&)
-       DESTRUCTOR, // 6 Spy::~Spy()
-       ASSIGN,     // 7 Spy::operator=(const Spy &)
-       ASSIGN_MOVE,// 8 Spy::operator=(Spy &&)
-       EQUALS,     // 9 Spy::operator==(const Spy &)
-       LESSTHAN,   // 10 Spy::operator<(const Spy &)
-       SWAP,       // 11 Spy::swap(Spy &)
-       NUM_MARKERS};
+enum {
+   ALLOC,      // 0 allocations, number of times NEW is called
+   DELETE,     // 1 deletions, number of times DELETE is called
+   DEFAULT,    // 2 Spy::Spy()
+   NONDEFAULT, // 3 Spy::Spy(int)
+   COPY,       // 4 Spy::Spy(const Spy &)
+   COPY_MOVE,  // 5 Spy::Spy(Spy &&)
+   DESTRUCTOR, // 6 Spy::~Spy()
+   ASSIGN,     // 7 Spy::operator=(const Spy &)
+   ASSIGN_MOVE,// 8 Spy::operator=(Spy &&)
+   EQUALS,     // 9 Spy::operator==(const Spy &)
+   LESSTHAN,   // 10 Spy::operator<(const Spy &)
+   SWAP,       // 11 Spy::swap(Spy &)
+   NUM_MARKERS
+};
 
 /*************************************************************
  * SPY
@@ -33,11 +35,11 @@ class Spy
 {
 public:
    // the member variable
-   int * p;
-   
+   int* p;
+
    // default constructor: allocate a spot and assign to zero
    Spy() : p(nullptr) { counters[DEFAULT]++; }
-   
+
    // non-default constructor: allocate a spot and assign to the value
    Spy(int value) : p(nullptr)
    {
@@ -45,9 +47,9 @@ public:
       *p = value;
       counters[NONDEFAULT]++;
    }
-   
+
    // copy constructor: make a new copy
-   Spy(const Spy & rhs) : p(nullptr)
+   Spy(const Spy& rhs) : p(nullptr)
    {
       if (!rhs.empty())
       {
@@ -56,9 +58,9 @@ public:
       }
       counters[COPY]++;
    }
-   
+
    // move constructor: steal the data from the RHS
-   Spy(Spy && rhs) noexcept
+   Spy(Spy&& rhs) noexcept
    {
       if (!rhs.empty())
       {
@@ -69,7 +71,7 @@ public:
          p = nullptr;
       counters[COPY_MOVE]++;
    }
-   
+
    // delete - remove the instance
    ~Spy()
    {
@@ -79,7 +81,7 @@ public:
    }
 
    // copy assignment operator
-   Spy & operator=(const Spy & rhs) noexcept
+   Spy& operator=(const Spy& rhs) noexcept
    {
       if (!rhs.empty())
       {
@@ -92,9 +94,9 @@ public:
       counters[ASSIGN]++;
       return *this;
    }
-   
+
    // move assignment operator
-   Spy & operator=(Spy && rhs) noexcept
+   Spy& operator=(Spy&& rhs) noexcept
    {
       if (!empty())
          unallocate();
@@ -103,28 +105,28 @@ public:
       counters[ASSIGN_MOVE]++;
       return *this;
    }
-   
+
    // is this pointer empty?
-   void swap(Spy & rhs) noexcept
+   void swap(Spy& rhs) noexcept
    {
-      int *pTemp = rhs.p;
+      int* pTemp = rhs.p;
       rhs.p = p;
       p = pTemp;
       counters[SWAP]++;
    }
-   
+
    // is this pointer empty?
    bool empty() const
    {
       return p == nullptr;
    }
-   
+
    // fetch the value
    int get() const
    {
       return *p;
    }
-   
+
    // set the value
    void set(int value)
    {
@@ -132,9 +134,9 @@ public:
          allocate();
       *p = value;
    }
-   
+
    // compare the values
-   bool operator==(const Spy & rhs) const
+   bool operator==(const Spy& rhs) const
    {
       counters[EQUALS]++;
       if (rhs.empty() && empty())
@@ -143,9 +145,9 @@ public:
          return get() == rhs.get();
       return false;
    }
-   
+
    // a null value is assumed to be the smallest value
-   bool operator<(const Spy & rhs) const
+   bool operator<(const Spy& rhs) const
    {
       counters[LESSTHAN]++;
       if (rhs.empty() && empty())
@@ -157,31 +159,31 @@ public:
       else
          return false;
    }
-   
+
    // reset the counters for a new test
    static void reset()
    {
       for (int i = 0; i < NUM_MARKERS; i++)
          counters[i] = 0;
    }
-   
-   static int numAlloc()       { return counters[ALLOC];      }
-   static int numDelete()      { return counters[DELETE];     }
-   static int numDefault()     { return counters[DEFAULT];    }
-   static int numNondefault()  { return counters[NONDEFAULT]; }
-   static int numCopy()        { return counters[COPY];       }
-   static int numCopyMove()    { return counters[COPY_MOVE];  }
-   static int numDestructor()  { return counters[DESTRUCTOR]; }
-   static int numAssign()      { return counters[ASSIGN];     }
-   static int numAssignMove()  { return counters[ASSIGN_MOVE];}
-   static int numEquals()      { return counters[EQUALS];     }
-   static int numLessthan()    { return counters[LESSTHAN];   }
-   static int numSwap()        { return counters[SWAP];       }
+
+   static int numAlloc() { return counters[ALLOC]; }
+   static int numDelete() { return counters[DELETE]; }
+   static int numDefault() { return counters[DEFAULT]; }
+   static int numNondefault() { return counters[NONDEFAULT]; }
+   static int numCopy() { return counters[COPY]; }
+   static int numCopyMove() { return counters[COPY_MOVE]; }
+   static int numDestructor() { return counters[DESTRUCTOR]; }
+   static int numAssign() { return counters[ASSIGN]; }
+   static int numAssignMove() { return counters[ASSIGN_MOVE]; }
+   static int numEquals() { return counters[EQUALS]; }
+   static int numLessthan() { return counters[LESSTHAN]; }
+   static int numSwap() { return counters[SWAP]; }
 
    // keep track of how it is used
    static int counters[NUM_MARKERS];
 private:
-   
+
    // allocate a new buffer
    void allocate()
    {
@@ -189,7 +191,7 @@ private:
       p = new int;
       counters[ALLOC]++;
    }
-   
+
    // free the buffer
    void unallocate()
    {
@@ -198,7 +200,7 @@ private:
       p = nullptr;
       counters[DELETE]++;
    }
-   
+
 };
 
-inline void swap(Spy & lhs, Spy & rhs) { lhs.swap(rhs);}
+inline void swap(Spy& lhs, Spy& rhs) { lhs.swap(rhs); }

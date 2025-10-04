@@ -69,7 +69,8 @@ public:
 
       // Delete
 
-      /* place your pop unit tests here */;
+		test_pop_empty();
+		test_pop_standard();
 
       // Status
       test_size_empty();
@@ -1139,7 +1140,67 @@ public:
     * POP
     ***************************************/
 
+   void test_pop_standard() {
+      // setup
+      //    +----+----+----+----+
+      //    | 26 | 49 | 67 | 89 |
+      //    +----+----+----+----+
+      custom::stack<Spy> s;
+      setupStandardFixture(s);
+      Spy::reset();
+      // exercise
+      s.pop();
+      // verify
+      assertUnit(Spy::numDestructor() == 1); // destroy [89]
+      assertUnit(Spy::numDelete() == 1);     // delete  [89]
+      assertUnit(Spy::numCopy() == 0);
+      assertUnit(Spy::numAlloc() == 0);
+      assertUnit(Spy::numAssign() == 0);
+      assertUnit(Spy::numDefault() == 0);
+      assertUnit(Spy::numNondefault() == 0);
+      assertUnit(Spy::numCopyMove() == 0);
+      assertUnit(Spy::numAssignMove() == 0);
+      //    +----+----+----+
+      //    | 26 | 49 | 67 |
+      //    +----+----+----+
+      assertUnit(s.container.size() == 3);
+      assertUnit(s.container.capacity() == 4);
+      if (s.container.size() >= 3)
+      {
+         assertUnit(s.container[0] == Spy(26));
+         assertUnit(s.container[1] == Spy(49));
+         assertUnit(s.container[2] == Spy(67));
+      }
+      // teardown
+      teardownStandardFixture(s);
+   }
 
+   void test_pop_empty() {
+      // setup
+      custom::stack<Spy> s;
+      Spy::reset();
+      // exercise / verify
+      bool caught = false;
+      try
+      {
+         s.pop();
+      }
+      catch (std::underflow_error e)
+      {
+         caught = true;
+      }
+      
+      assertUnit(Spy::numDestructor() == 0);
+      assertUnit(Spy::numDelete() == 0);
+      assertUnit(Spy::numCopy() == 0);
+      assertUnit(Spy::numAlloc() == 0);
+      assertUnit(Spy::numAssign() == 0);
+      assertUnit(Spy::numDefault() == 0);
+      assertUnit(Spy::numNondefault() == 0);
+      assertUnit(Spy::numCopyMove() == 0);
+      assertUnit(Spy::numAssignMove() == 0);
+      assertEmptyFixture(s);
+   }
    
    /*************************************************************
     * SETUP STANDARD FIXTURE

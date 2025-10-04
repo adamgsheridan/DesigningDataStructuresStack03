@@ -43,12 +43,11 @@ public:
    // Construct
    // 
 
-   stack()                            { container.resize(7); }
-   stack(const stack <T> &  rhs)      { container.resize(7); }
-   stack(      stack <T> && rhs)      { container.resize(7); }
-   stack(const std::vector<T> &  rhs) { container.resize(7); }
-   stack(      std::vector<T> && rhs) { container.resize(7); }
-   ~stack()                           {                      }
+   stack() : container() {}
+   stack(const stack<T>& rhs) : container(rhs.container) {}
+   stack(stack<T>&& rhs) noexcept : container(std::move(rhs.container)) {}
+   stack(const std::vector<T>& rhs) : container(rhs) {}
+   stack(std::vector<T>&& rhs) noexcept : container(std::move(rhs)) {}
 
    //
    // Assign
@@ -71,15 +70,22 @@ public:
    // Access
    //
 
-         T& top()       { return *(new T); }
-   const T& top() const { return *(new T); }
+   T& top()       {
+      //assert(!empty());
+      return container.back();
+   }
+
+   const T& top() const { 
+      //assert(!empty());
+      return container.back();
+   }
 
    // 
    // Insert
    // 
 
-   void push(const T&  t) {  }
-   void push(      T&& t) {  }
+   void push(const T& t) { container.push_back(t); }
+   void push(T&& t) { container.push_back(std::move(t)); }
 
    //
    // Remove
@@ -87,14 +93,16 @@ public:
 
    void pop() 
    { 
-      
+		if (empty())
+         return;
+      container.pop_back();
    }
 
    //
    // Status
    //
-   size_t  size () const { return 99;  }
-   bool empty   () const { return true; }
+   size_t  size () const { return container.size(); }
+   bool empty() const { return container.empty(); }
    
 private:
    
