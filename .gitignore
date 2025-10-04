@@ -1,0 +1,48 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ipch
+*.iobj
+*.iuser
+*.idb
+*.sbr
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.cache
+*.dbmdl
+*.VC.db
+*.VC.VC.opendb
+
+# Backup and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.ncb
+*.aps
+*.plg
+
+# OS-generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# CMake and build system
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Others
+*.clang-format
+*.clang-tidy
