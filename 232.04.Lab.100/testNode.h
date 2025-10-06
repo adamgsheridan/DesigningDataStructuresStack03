@@ -50,13 +50,13 @@ public:
       test_insert_frontBefore();
       test_insert_frontAfter();
       test_insert_backBefore();
-      test_insert_backAfter();
-      test_insert_middleBefore();
-
+      test_insert_backAfter(); 
+      test_insert_middleBefore(); 
+       
       //******* Adam *******//
       test_insert_middleAfter();
 
-      // Remove
+      //// Remove
       test_remove_nullptr();
       test_remove_front();
       test_remove_back();

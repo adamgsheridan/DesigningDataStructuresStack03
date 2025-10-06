@@ -39,18 +39,25 @@ public:
    // Construct
    //
 
+  // Default constructor
    Node()
+      : data(), pNext(nullptr), pPrev(nullptr)
    {
-      pPrev = pNext = this;
    }
-   Node(const T &  data)
+
+
+   // Copy constructor
+   Node(const T& data) : data(data)
    {
-      pPrev = pNext = this;
+      pPrev = pNext = NULL;
    }
-   Node(      T && data)
+
+   // Move constructor
+   Node(T&& data) : data(std::move(data))
    {
-      pPrev = pNext = this;
+      pPrev = pNext = NULL;
    }
+
 
    //
    // Member variables
@@ -72,7 +79,24 @@ public:
 template <class T>
 inline Node <T> * copy(const Node <T> * pSource) 
 {
-   return new Node<T>;
+   if (!pSource)
+      return nullptr;
+
+   Node<T>* pHead = new Node<T>(pSource->data);
+   Node<T>* pTail = pHead;
+   pSource = pSource->pNext;
+
+   while (pSource)
+   {
+      Node<T>* newNode = new Node<T>(pSource->data);
+      pTail->pNext = newNode;
+      newNode->pPrev = pTail;
+      pTail = newNode;
+      pSource = pSource->pNext;
+   }
+
+   return pHead;
+
 }
 
 /***********************************************
@@ -86,8 +110,79 @@ inline Node <T> * copy(const Node <T> * pSource)
 template <class T>
 inline void assign(Node <T> * & pDestination, const Node <T> * pSource)
 {
-   
+   Node<T>* pDestWalker = pDestination;
+   Node<T>* pPrev = nullptr;
+
+   // Case 0: Source is empty — delete all destination nodes
+   if (!pSource)
+   {
+      while (pDestWalker)
+      {
+         Node<T>* temp = pDestWalker;
+         pDestWalker = pDestWalker->pNext;
+         delete temp;
+      }
+      pDestination = nullptr;
+      return;
+   }
+
+   // Case 1: Destination is empty — clone the source list
+   if (!pDestWalker)
+   {
+      pDestination = new Node<T>(pSource->data);
+      pPrev = pDestination;
+      pSource = pSource->pNext;
+
+      while (pSource)
+      {
+         Node<T>* newNode = new Node<T>(pSource->data);
+         pPrev->pNext = newNode;
+         newNode->pPrev = pPrev;
+         pPrev = newNode;
+         pSource = pSource->pNext;
+      }
+      return;
+   }
+
+   // Case 2: Destination has nodes — reuse and extend
+   while (pSource && pDestWalker)
+   {
+      pDestWalker->data = pSource->data;
+      pPrev = pDestWalker;
+      pDestWalker = pDestWalker->pNext;
+      pSource = pSource->pNext;
+   }
+
+   // Source has more nodes — allocate and link
+   while (pSource)
+   {
+      Node<T>* newNode = new Node<T>(pSource->data);
+      if (pPrev)
+      {
+         pPrev->pNext = newNode;
+         newNode->pPrev = pPrev;
+      }
+      else
+      {
+         pDestination = newNode;
+      }
+      pPrev = newNode;
+      pSource = pSource->pNext;
+   }
+
+   // Destination has extra nodes — delete them
+   while (pDestWalker)
+   {
+      Node<T>* temp = pDestWalker;
+      pDestWalker = pDestWalker->pNext;
+      delete temp;
+   }
+
+   // Finalize the tail
+   if (pPrev)
+      pPrev->pNext = nullptr;
 }
+
 
 /***********************************************
  * SWAP
