@@ -23,7 +23,7 @@ public:
    void run()
    {
       reset();
-
+      //******* McClain *******//
       // Construct
       test_create_default();
       test_create_value();
@@ -37,6 +37,8 @@ public:
       test_assign_emptyToStandard();
       test_assign_smallToBig();
       test_assign_bigToSmall();
+
+      //******* Trevaye *******//
       test_swap_emptyEmpty();
       test_swap_emptyStandard();
       test_swap_standardEmpty();
@@ -50,6 +52,8 @@ public:
       test_insert_backBefore();
       test_insert_backAfter();
       test_insert_middleBefore();
+
+      //******* Adam *******//
       test_insert_middleAfter();
 
       // Remove
