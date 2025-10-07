@@ -15,7 +15,7 @@
  *        Node         : A class representing a Node
  *    Additionally, it will contain a few functions working on Node
  * Author
- *    <your names here>
+ *          McClain , Adam and Trevaye
  ************************************************************************/
 
 #pragma once
@@ -192,7 +192,9 @@ inline void assign(Node <T> * & pDestination, const Node <T> * pSource)
 template <class T>
 inline void swap(Node <T>* &pLHS, Node <T>* &pRHS)
 {
-
+	Node<T>* temp = pLHS;
+	pLHS = pRHS;
+	pRHS = temp;
 }
 
 /***********************************************
@@ -203,9 +205,23 @@ inline void swap(Node <T>* &pLHS, Node <T>* &pRHS)
  *   COST   : O(1)
  **********************************************/
 template <class T>
-inline Node <T> * remove(const Node <T> * pRemove) 
+inline Node <T> * remove(Node <T> * pRemove) 
 {
-   return new Node <T>;
+    if (!pRemove) return nullptr;
+
+    Node<T> * pPrev = pRemove -> pPrev;
+    Node<T>* pNext = pRemove->pNext;
+
+    if (pPrev)
+        pPrev->pNext = pNext; 
+
+    if (pNext)
+        pNext->pPrev = pPrev;
+
+    delete pRemove;
+
+	return pPrev ? pPrev : pNext; // Return the previous node if it exists, otherwise return the next node
+
 }
 
 /**********************************************
@@ -224,7 +240,34 @@ inline Node <T> * insert(Node <T> * pCurrent,
                   const T & t,
                   bool after = false)
 {
-   return new Node <T>;
+	Node<T>* newNode = new Node<T>(t); // Create a new node with the given value
+
+    if (!pCurrent) 
+    {
+        // If the current node is null, return the new node as the only node in the list
+        return newNode;
+	}
+
+    if (after) 
+    {
+        // Insert after the current node
+        newNode->pNext = pCurrent->pNext;
+        newNode->pPrev = pCurrent;
+        if (pCurrent->pNext) 
+            pCurrent->pNext->pPrev = newNode;
+        pCurrent->pNext = newNode;
+    } 
+    else 
+    {
+        // Insert before the current node
+        newNode->pPrev = pCurrent->pPrev;
+        newNode->pNext = pCurrent;
+        if (pCurrent->pPrev) 
+            pCurrent->pPrev->pNext = newNode;
+        pCurrent->pPrev = newNode;
+    }
+	return newNode; // Return the newly inserted node
+  
 }
 
 /******************************************************
@@ -238,7 +281,15 @@ inline Node <T> * insert(Node <T> * pCurrent,
 template <class T>
 inline size_t size(const Node <T> * pHead)
 {
-   return 99;
+	size_t count = 0;
+	const Node<T>* current = pHead;
+
+	while (current) // Traverse the list until the end
+    {
+        count++;
+        current = current->pNext;
+	}
+	return count;
 }
 
 /***********************************************
@@ -252,7 +303,13 @@ inline size_t size(const Node <T> * pHead)
 template <class T>
 inline std::ostream & operator << (std::ostream & out, const Node <T> * pHead)
 {
-   return out;
+	const Node<T>* current = pHead;
+    while (current) // Traverse the list until the end
+    {
+        out << current->data << " "; // Output the data of the current node
+        current = current->pNext;    // Move to the next node
+	}
+	return out;
 }
 
 /*****************************************************
@@ -265,7 +322,14 @@ inline std::ostream & operator << (std::ostream & out, const Node <T> * pHead)
 template <class T>
 inline void clear(Node <T> * & pHead)
 {
-
+	Node<T>* current = pHead;
+    while (current) 
+    {
+        Node<T>* temp = current;
+        current = current->pNext;
+        delete temp;
+	}
+	pHead = nullptr; // Set the head pointer to null after clearing the list
 }
 
 
