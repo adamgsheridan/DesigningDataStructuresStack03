@@ -63,7 +63,7 @@ public:
       test_swap_bigToSmall();
 
       // Iterator 11
-     /* test_iterator_begin_empty();
+      test_iterator_begin_empty();
       test_iterator_begin_standard();
       test_iterator_end_standard();
       test_iterator_increment_standardMiddle();
@@ -73,18 +73,18 @@ public:
       test_iterator_decrement_standardBegin();
       test_iterator_decrementPost_standardMiddle();
       test_iterator_dereference_read();
-      test_iterator_dereference_update();*/
+      test_iterator_dereference_update();
 
       // Access 6
-     /* test_front_empty();
+      test_front_empty();
       test_front_standardRead();
       test_front_standardWrite();
       test_back_empty();
       test_back_standardRead();
-      test_back_standardWrite();*/
+      test_back_standardWrite();
 
       // Insert 15
-     /* test_pushback_empty();
+      test_pushback_empty();
       test_pushback_standard();
       test_pushback_moveEmpty();
       test_pushback_moveStandard();
@@ -98,10 +98,10 @@ public:
       test_insert_standardEnd();
       test_insertMove_empty();
       test_insertMove_standardFront();
-      test_insertMove_standardMiddle();*/
+      test_insertMove_standardMiddle();
 
       // Remove 12
-      /*test_clear_empty();
+      test_clear_empty();
       test_clear_standard();
       test_popback_empty();
       test_popback_standard();
@@ -112,13 +112,13 @@ public:
       test_erase_empty();
       test_erase_standardFront();
       test_erase_standardMiddle();
-      test_erase_standardEnd();*/
+      test_erase_standardEnd();
 
       // Status 4
-      /*test_size_empty();
+      test_size_empty();
       test_size_three();
       test_empty_empty();
-      test_empty_three();*/
+      test_empty_three();
 
       report("List");
    }

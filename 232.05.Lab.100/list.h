@@ -376,7 +376,25 @@ list <T> ::list(list <T>&& rhs)
 template <typename T>
 list <T>& list <T> :: operator = (list <T> && rhs)
 {
+   // Self-assignment check
+   if (this == &rhs)
+      return *this;
+
+   // Clean up current list
+   clear();
+
+   // Steal resources
+   numElements = rhs.numElements;
+   pHead = rhs.pHead;
+   pTail = rhs.pTail;
+
+   // Null out source
+   rhs.numElements = 0;
+   rhs.pHead = nullptr;
+   rhs.pTail = nullptr;
+
    return *this;
+
 }
 
 /**********************************************
@@ -389,7 +407,35 @@ list <T>& list <T> :: operator = (list <T> && rhs)
 template <typename T>
 list <T> & list <T> :: operator = (list <T> & rhs)
 {
+   // Self-assignment check
+   if (this == &rhs)
+      return *this;
+
+   // Clean up current list
+   clear();
+
+   // Deep copy
+   numElements = 0;
+   pHead = nullptr;
+   pTail = nullptr;
+
+   for (Node* pSrc = rhs.pHead; pSrc != nullptr; pSrc = pSrc->pNext)
+   {
+      Node* pNew = new Node(pSrc->data);
+      pNew->pPrev = pTail;
+      pNew->pNext = nullptr;
+
+      if (pTail)
+         pTail->pNext = pNew;
+      else
+         pHead = pNew;
+
+      pTail = pNew;
+      numElements++;
+   }
+
    return *this;
+
 }
 
 /**********************************************
@@ -402,7 +448,31 @@ list <T> & list <T> :: operator = (list <T> & rhs)
 template <typename T>
 list <T>& list <T> :: operator = (const std::initializer_list<T>& rhs)
 {
+   // Clean up current list
+   clear();
+
+   // Copy from initializer list
+   numElements = 0;
+   pHead = nullptr;
+   pTail = nullptr;
+
+   for (const T& item : rhs)
+   {
+      Node* pNew = new Node(item);
+      pNew->pPrev = pTail;
+      pNew->pNext = nullptr;
+
+      if (pTail)
+         pTail->pNext = pNew;
+      else
+         pHead = pNew;
+
+      pTail = pNew;
+      numElements++;
+   }
+
    return *this;
+
 }
 
 /**********************************************
@@ -415,6 +485,15 @@ list <T>& list <T> :: operator = (const std::initializer_list<T>& rhs)
 template <typename T>
 void list <T> :: clear()
 {
+   Node* p = pHead;
+   while (p != nullptr)
+   {
+      Node* pNext = p->pNext;
+      delete p;
+      p = pNext;
+   }
+   pHead = pTail = nullptr;
+   numElements = 0;
 
 }
 
@@ -554,12 +633,17 @@ typename list <T> :: iterator list <T> :: insert(list <T> :: iterator it,
 template <typename T>
 void swap(list <T> & lhs, list <T> & rhs)
 {
+   lhs.swap(rhs);
 
 }
 
 template <typename T>
 void list<T>::swap(list <T>& rhs)
 {
+   std::swap(numElements, rhs.numElements);
+   std::swap(pHead, rhs.pHead);
+   std::swap(pTail, rhs.pTail);
+
 }
 
 //#endif
