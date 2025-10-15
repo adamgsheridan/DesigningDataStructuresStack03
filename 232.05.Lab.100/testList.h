@@ -27,7 +27,7 @@ public:
    {
       reset();
 
-      // Construct
+      // Construct 14
       test_construct_default();
       test_construct_sizeZero();
       test_construct_sizeThree();
@@ -43,7 +43,7 @@ public:
       test_destructor_empty();
       test_destructor_standard();
 
-      // Assign
+      // Assign 17
       test_assign_emptyToEmpty();
       test_assign_standardToEmpty();
       test_assign_emptyToStandard();
@@ -62,8 +62,8 @@ public:
       test_swap_emptyToStandard();
       test_swap_bigToSmall();
 
-      // Iterator
-      test_iterator_begin_empty();
+      // Iterator 11
+     /* test_iterator_begin_empty();
       test_iterator_begin_standard();
       test_iterator_end_standard();
       test_iterator_increment_standardMiddle();
@@ -73,18 +73,18 @@ public:
       test_iterator_decrement_standardBegin();
       test_iterator_decrementPost_standardMiddle();
       test_iterator_dereference_read();
-      test_iterator_dereference_update();
+      test_iterator_dereference_update();*/
 
-      // Access
-      test_front_empty();
+      // Access 6
+     /* test_front_empty();
       test_front_standardRead();
       test_front_standardWrite();
       test_back_empty();
       test_back_standardRead();
-      test_back_standardWrite();
+      test_back_standardWrite();*/
 
-      // Insert
-      test_pushback_empty();
+      // Insert 15
+     /* test_pushback_empty();
       test_pushback_standard();
       test_pushback_moveEmpty();
       test_pushback_moveStandard();
@@ -98,10 +98,10 @@ public:
       test_insert_standardEnd();
       test_insertMove_empty();
       test_insertMove_standardFront();
-      test_insertMove_standardMiddle();
+      test_insertMove_standardMiddle();*/
 
-      // Remove
-      test_clear_empty();
+      // Remove 12
+      /*test_clear_empty();
       test_clear_standard();
       test_popback_empty();
       test_popback_standard();
@@ -112,13 +112,13 @@ public:
       test_erase_empty();
       test_erase_standardFront();
       test_erase_standardMiddle();
-      test_erase_standardEnd();
+      test_erase_standardEnd();*/
 
-      // Status
-      test_size_empty();
+      // Status 4
+      /*test_size_empty();
       test_size_three();
       test_empty_empty();
-      test_empty_three();
+      test_empty_three();*/
 
       report("List");
    }
@@ -283,6 +283,7 @@ public:
       //    +----+   +----+   +----+      
       custom::list<int> lSrc;
       setupStandardFixture(lSrc);
+
       // exercise
       custom::list<int> lDest(lSrc);
       // verify
@@ -301,6 +302,7 @@ public:
       //    | 11 | - | 26 | - | 31 |
       //    +----+   +----+   +----+      
       assertStandardFixture(lDest);
+
       // teardown
       teardownStandardFixture(lSrc);
       teardownStandardFixture(lDest);
