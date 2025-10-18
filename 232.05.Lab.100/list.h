@@ -15,7 +15,7 @@
  *        List         : A class that represents a List
  *        ListIterator : An iterator through List
  * Author
- *    <your names here>
+ *    Trevaye, Adam, McClain
  ************************************************************************/
 
 #pragma once
@@ -30,95 +30,117 @@ class TestHash;        // to be used later
 namespace custom
 {
 
-/**************************************************
- * LIST
- * Just like std::list
- **************************************************/
-template <typename T>
-class list
-{
-   friend class ::TestList; // give unit tests access to the privates
-   friend class ::TestHash;
-   friend void swap(list& lhs, list& rhs);
-public:  
-   // 
-   // Construct
-   //
+    /**************************************************
+     * LIST
+     * Just like std::list
+     **************************************************/
+    template <typename T>
+    class list
+    {
+        friend class ::TestList; // give unit tests access to the privates
+        friend class ::TestHash;
+        friend void swap(list& lhs, list& rhs);
+    public:
+        // 
+        // Construct
+        //
 
-   list();
-   list(list <T> & rhs);
-   list(list <T>&& rhs);
-   list(size_t num, const T & t);
-   list(size_t num);
-   list(const std::initializer_list<T>& il);
-   template <class Iterator>
-   list(Iterator first, Iterator last);
-  ~list() 
-   {
-   }
+        list();
+        list(list <T>& rhs);
+        list(list <T>&& rhs);
+        list(size_t num, const T& t);
+        list(size_t num);
+        list(const std::initializer_list<T>& il);
+        template <class Iterator>
+        list(Iterator first, Iterator last);
+        ~list()
+        {
+        }
 
-   // 
-   // Assign
-   //
+        // 
+        // Assign
+        //
 
-   list <T> & operator = (list &  rhs);
-   list <T> & operator = (list && rhs);
-   list <T> & operator = (const std::initializer_list<T>& il);
-   void swap(list <T>& rhs);
+        list <T>& operator = (list& rhs);
+        list <T>& operator = (list&& rhs);
+        list <T>& operator = (const std::initializer_list<T>& il);
+        void swap(list <T>& rhs);
 
-   //
-   // Iterator
-   //
+        // ========= Iterator ===========
 
-   class  iterator;
-   iterator begin()  { return iterator(); }
-   iterator rbegin() { return iterator(); }
-   iterator end()    { return iterator(); }
+        class iterator {
+            friend class list<T>;
+        private:
+            Node* p; // pointer to a node in the list
+        public:
+            iterator() : p(nullptr) {}
+            iterator(Node* node) : p(node) {}
+            iterator(const iterator& rhs) : p(rhs.p) {}
 
-   //
-   // Access
-   //
+            iterator& operator=(const iterator& rhs) { p = rhs.p; return *this; }
 
-   T& front();
-   T& back();
+            bool operator==(const iterator& rhs) const { return p == rhs.p; }
+            bool operator!=(const iterator& rhs) const { return p != rhs.p; }
 
-   //
-   // Insert
-   //
+            T& operator*() { return p->data; }
+            T* operator->() { return &(p->data); }
 
-   void push_front(const T&  data);
-   void push_front(      T&& data);
-   void push_back (const T&  data);
-   void push_back (      T&& data);
-   iterator insert(iterator it, const T& data);
-   iterator insert(iterator it, T&& data);
+            iterator& operator++() { p = p->pNext; return *this; }          // prefix
+            iterator operator++(int) { iterator temp = *this; ++(*this); return temp; } // postfix
 
-   //
-   // Remove
-   //
+            iterator& operator--() { p = p->pPrev; return *this; }          // prefix
+            iterator operator--(int) { iterator temp = *this; --(*this); return temp; } // postfix
+        };
 
-   void pop_back();
-   void pop_front();
-   void clear();
-   iterator erase(const iterator& it);
-
-   // 
-   // Status
-   //
-
-   bool empty()  const { return true; }
-   size_t size() const { return 99;   }
+        // begin/end
+        iterator begin() { return iterator(pHead); }
+        iterator end() { return iterator(nullptr); }
 
 
-private:
-   // nested linked list class
-   class Node;
+        // ======== Access ===============
 
-   // member variables
-   size_t numElements; // though we could count, it is faster to keep a variable
-   Node * pHead;    // pointer to the beginning of the list
-   Node * pTail;    // pointer to the ending of the list
-};
+        T& front() {
+            if (!pHead) throw std::out_of_range("List is empty");
+            return pHead->data;
+        }
+
+        T& back() {
+            if (!pTail) throw std::out_of_range("List is empty");
+            return pTail->data;
+        }
+
+        // ======= Insert ============
+
+        void push_front(const T& data);
+        void push_front(T&& data);
+        void push_back(const T& data);
+        void push_back(T&& data);
+        iterator insert(iterator it, const T& data);
+        iterator insert(iterator it, T&& data);
+
+        //
+        // Remove
+        //
+
+        void pop_back();
+        void pop_front();
+        void clear();
+        iterator erase(const iterator& it);
+
+        // ========= Status ============
+
+        bool empty() const { return numElements == 0; }
+        size_t size() const { return numElements; }
+
+    private:
+        // nested linked list class
+        class Node;
+
+        // member variables
+        size_t numElements; // though we could count, it is faster to keep a variable
+        Node* pHead;    // pointer to the beginning of the list
+        Node* pTail;    // pointer to the ending of the list
+    };
 
 /*************************************************
  * NODE
