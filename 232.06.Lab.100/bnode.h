@@ -37,15 +37,28 @@ public:
    //
    BNode()
    {
-      pLeft = pRight = this;
+      data = T{};          // Default-initialize data (e.g., int = 0)
+      pLeft = nullptr;
+      pRight = nullptr;
+      pParent = nullptr;
    }
    BNode(const T& t)
    {
-      pLeft = pRight = this;
+      data = t;
+      pLeft = nullptr;
+      pRight = nullptr;
+      pParent = nullptr;
+
+
+
    }
    BNode(T&& t)
    {
-      pLeft = pRight = this;
+      data = std::move(t);
+      pLeft = nullptr;
+      pRight = nullptr;
+      pParent = nullptr;
+
    }
 
    //
@@ -150,7 +163,20 @@ inline void swap(BNode <T>*& pLHS, BNode <T>*& pRHS)
 template <class T>
 BNode <T> * copy(const BNode <T> * pSrc)
 {
-   return new BNode<T>;
+   if (pSrc == nullptr)
+      return nullptr;
+
+   BNode<T>* pNew = new BNode<T>(pSrc->data); 
+   pNew->pLeft = copy(pSrc->pLeft); 
+   pNew->pRight = copy(pSrc->pRight); 
+
+   if (pNew->pLeft) 
+      pNew->pLeft->pParent = pNew; 
+   if (pNew->pRight) 
+      pNew->pRight->pParent = pNew; 
+
+   return pNew; 
+
 }
 
 /**********************************************
