@@ -29,7 +29,6 @@ class TestHash;        // to be used later
 
 namespace custom
 {
-
     /**************************************************
      * LIST
      * Just like std::list
@@ -66,50 +65,25 @@ namespace custom
         list <T>& operator = (const std::initializer_list<T>& il);
         void swap(list <T>& rhs);
 
-        // ========= Iterator ===========
+        //
+        // Iterator
+        //
 
-        class iterator {
-            friend class list<T>;
-        private:
-            Node* p; // pointer to a node in the list
-        public:
-            iterator() : p(nullptr) {}
-            iterator(Node* node) : p(node) {}
-            iterator(const iterator& rhs) : p(rhs.p) {}
-
-            iterator& operator=(const iterator& rhs) { p = rhs.p; return *this; }
-
-            bool operator==(const iterator& rhs) const { return p == rhs.p; }
-            bool operator!=(const iterator& rhs) const { return p != rhs.p; }
-
-            T& operator*() { return p->data; }
-            T* operator->() { return &(p->data); }
-
-            iterator& operator++() { p = p->pNext; return *this; }          // prefix
-            iterator operator++(int) { iterator temp = *this; ++(*this); return temp; } // postfix
-
-            iterator& operator--() { p = p->pPrev; return *this; }          // prefix
-            iterator operator--(int) { iterator temp = *this; --(*this); return temp; } // postfix
-        };
-
-        // begin/end
+        class  iterator;
         iterator begin() { return iterator(pHead); }
-        iterator end() { return iterator(nullptr); }
+        iterator rbegin() { return iterator(); }
+        iterator end() { return iterator(); }
 
+        //
+        // Access
+        //
 
-        // ======== Access ===============
+        T& front();
+        T& back();
 
-        T& front() {
-            if (!pHead) throw std::out_of_range("List is empty");
-            return pHead->data;
-        }
-
-        T& back() {
-            if (!pTail) throw std::out_of_range("List is empty");
-            return pTail->data;
-        }
-
-        // ======= Insert ============
+        //
+        // Insert
+        //
 
         void push_front(const T& data);
         void push_front(T&& data);
@@ -127,10 +101,13 @@ namespace custom
         void clear();
         iterator erase(const iterator& it);
 
-        // ========= Status ============
+        // 
+        // Status
+        //
 
-        bool empty() const { return numElements == 0; }
+        bool empty()  const { return numElements == 0; }
         size_t size() const { return numElements; }
+
 
     private:
         // nested linked list class
