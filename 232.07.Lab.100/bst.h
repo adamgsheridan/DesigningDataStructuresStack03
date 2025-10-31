@@ -1,4 +1,4 @@
-/***********************************************************************
+﻿/***********************************************************************
  * Header:
  *    BST
  * Summary:
@@ -205,17 +205,23 @@ public:
    const T& operator * () const { return pNode->data; }
 
    // increment and decrement
-   iterator & operator ++ ();
+   // increment and decrement
+   iterator& operator ++ ();
    iterator   operator ++ (int postfix)
    {
-      return *this;
+      iterator temp = *this;
+      ++(*this);
+      return temp;
+
    }
-   iterator & operator -- ();
+   iterator& operator -- ();
    iterator   operator -- (int postfix)
    {
-      return *this;;
-   }
+      iterator temp = *this;
+      --(*this);
+      return temp;
 
+   }
    // must give friend status to remove so it can call getNode() from it
    friend BST <T> :: iterator BST <T> :: erase(iterator & it);
 
@@ -549,7 +555,21 @@ typename BST<T>::iterator BST<T>::begin() const noexcept
 template <typename T>
 typename BST <T> :: iterator BST<T> :: find(const T & t)
 {
-   return end();
+  BNode* p = root;
+
+   while (p != nullptr)
+   {
+      if (t == p->data)
+         return iterator(p); // Found the node
+      else if (t < p->data)
+         p = p->pLeft;       // Go left
+      else
+         p = p->pRight;      // Go right
+   }
+
+   return end(); // Not found
+
+
 }
 
 /******************************************************
@@ -638,7 +658,31 @@ void BST <T> ::BNode::addRight(T && t)
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
-   return *this;  
+   if (pNode == nullptr)
+      return *this;
+
+   //Right child exists → go to leftmost node in right subtree
+   if (pNode->pRight != nullptr)
+   {
+      pNode = pNode->pRight;
+      while (pNode->pLeft != nullptr)
+         pNode = pNode->pLeft;
+   }
+   else
+   {
+      //Go up until we come from the left
+      BNode* parent = pNode->pParent;
+      while (parent != nullptr && pNode == parent->pRight)
+      {
+         pNode = parent;
+         parent = parent->pParent;
+      }
+      pNode = parent;
+   }
+
+   return *this;
+
+
 }
 
 /**************************************************
@@ -648,7 +692,30 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
 {
+   if (pNode == nullptr)
+      return *this;
+
+   // Case 1: If there's a left child, go to its rightmost descendant
+   if (pNode->pLeft != nullptr)
+   {
+      pNode = pNode->pLeft;
+      while (pNode->pRight != nullptr)
+         pNode = pNode->pRight;
+   }
+   else
+   {
+      // Case 2: Go up until we come from the right
+      BNode* parent = pNode->pParent;
+      while (parent != nullptr && pNode == parent->pLeft)
+      {
+         pNode = parent;
+         parent = parent->pParent;
+      }
+      pNode = parent;
+   }
+
    return *this;
+
 
 }
 

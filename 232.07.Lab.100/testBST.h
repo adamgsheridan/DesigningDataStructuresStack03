@@ -33,7 +33,7 @@ public:
    {
       reset();
 
-      // Construct
+      //// Construct
       test_construct_default();
       test_constructCopy_empty();
       test_constructCopy_one();
@@ -46,7 +46,7 @@ public:
       test_destruct_empty();
       test_destruct_standard();
 
-      // Assign
+      //// Assign
       test_assign_emptyToEmpty();
       test_assign_standardToEmpty();
       test_assign_emptyToStandard();
@@ -100,7 +100,7 @@ public:
       test_insertMove_duplicate();
       test_insertMove_keepUnique();
 
-      // Remove
+      //// Remove
       test_erase_empty();
       test_erase_standardMissing();
       test_erase_noChildren();
@@ -110,7 +110,7 @@ public:
       test_clear_empty();
       test_clear_standard();
 
-      // Status
+      //// Status
       test_empty_empty();
       test_empty_standard();
       test_size_empty();
