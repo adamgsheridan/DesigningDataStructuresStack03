@@ -1,4 +1,4 @@
-﻿/***********************************************************************
+/***********************************************************************
  * Header:
  *    BST
  * Summary:
@@ -30,6 +30,7 @@
 #include <memory>     // for std::allocator
 #include <functional> // for std::less
 #include <utility>    // for std::pair
+#include <initializer_list> // for std::initializer_list
 
 class TestBST; // forward declaration for unit tests
 class TestMap;
@@ -205,23 +206,17 @@ public:
    const T& operator * () const { return pNode->data; }
 
    // increment and decrement
-   // increment and decrement
-   iterator& operator ++ ();
+   iterator & operator ++ ();
    iterator   operator ++ (int postfix)
    {
-      iterator temp = *this;
-      ++(*this);
-      return temp;
-
+      return *this;
    }
-   iterator& operator -- ();
+   iterator & operator -- ();
    iterator   operator -- (int postfix)
    {
-      iterator temp = *this;
-      --(*this);
-      return temp;
-
+      return *this;;
    }
+
    // must give friend status to remove so it can call getNode() from it
    friend BST <T> :: iterator BST <T> :: erase(iterator & it);
 
@@ -255,26 +250,41 @@ BST <T> ::BST()
  * BST :: COPY CONSTRUCTOR
  * Copy one tree to another
  ********************************************/
+ /*********************************************
+  * BST :: COPY CONSTRUCTOR
+  * Copy one tree to another
+  ********************************************/
 template <typename T>
-BST <T> :: BST ( const BST<T>& rhs) 
+BST<T>::BST(const BST<T>& rhs)
 {
     numElements = rhs.numElements;
-	root = nullptr;
+    root = nullptr;
+
     if (rhs.root)
     {
-        std::function<BNode*(BNode*, BNode *)> copyNodes = [&](BNode* srcNode, BNode* parent) -> BNode*
-        {
-            if (!srcNode)
-                return nullptr;
-            BNode* newNode = new BNode(srcNode->data);
-            newNode->pParent = parent;
-            newNode->pLeft = copyNodes(srcNode->pLeft, newNode);
-            newNode->pRight = copyNodes(srcNode->pRight, newNode);
-            return newNode;
-			};
-		root = copyNodes(rhs.root, nullptr);
-    };
+        // Recursive lambda to deep-copy nodes
+        std::function<BNode* (BNode*, BNode*)> copyNodes =
+            [&](BNode* srcNode, BNode* parent) -> BNode*
+            {
+                if (!srcNode)
+                    return nullptr;
+
+                // Create a new node with the same data
+                BNode* newNode = new BNode(srcNode->data);
+                newNode->pParent = parent;
+
+                // Recursively copy left and right children
+                newNode->pLeft = copyNodes(srcNode->pLeft, newNode);
+                newNode->pRight = copyNodes(srcNode->pRight, newNode);
+
+                return newNode;
+            };
+
+        // Copy the entire subtree rooted at rhs.root
+        root = copyNodes(rhs.root, nullptr);
+    }
 }
+
 
 /*********************************************
  * BST :: MOVE CONSTRUCTOR
@@ -507,9 +517,83 @@ std::pair<typename BST<T>::iterator, bool> BST<T>::insert(T&& t, bool keepUnique
  * Remove a given node as specified by the iterator
  ************************************************/
 template <typename T>
-typename BST <T> ::iterator BST <T> :: erase(iterator & it)
-{  
-   return end();
+typename BST<T>::iterator BST<T>::erase(iterator& it)
+{
+    // If iterator is invalid or at end, do nothing
+    if (it == end() || !it.pNode)
+        return end();
+
+    BNode* node = it.pNode;       // node to be deleted
+    BNode* parent = node->pParent;  // parent of the node
+    BNode* next = nullptr;        // node to return after deletion
+
+    // ===== CASE 1: Node has NO children =====
+    if (!node->pLeft && !node->pRight)
+    {
+        if (!parent)
+        {
+            // Node is root, tree becomes empty
+            root = nullptr;
+        }
+        else if (parent->pLeft == node)
+        {
+            parent->pLeft = nullptr;
+        }
+        else
+        {
+            parent->pRight = nullptr;
+        }
+
+        next = parent;  // The iterator after erase could point to parent
+        delete node;
+    }
+
+    // ===== CASE 2: Node has ONE child =====
+    else if (!node->pLeft || !node->pRight)
+    {
+        // Determine which child exists
+        BNode* child = (node->pLeft) ? node->pLeft : node->pRight;
+        child->pParent = parent;
+
+        if (!parent)
+        {
+            // Node is root
+            root = child;
+        }
+        else if (parent->pLeft == node)
+        {
+            parent->pLeft = child;
+        }
+        else
+        {
+            parent->pRight = child;
+        }
+
+        next = child;   // Move iterator to the promoted child
+        delete node;
+    }
+
+    // ===== CASE 3: Node has TWO children =====
+    else
+    {
+        // Find in-order successor (smallest in right subtree)
+        BNode* successor = node->pRight;
+        while (successor->pLeft)
+            successor = successor->pLeft;
+
+        // Copy successor's data into current node
+        node->data = successor->data;
+
+        // Recursively erase the successor
+        iterator temp(successor);
+        erase(temp);
+
+        // Iterator remains pointing at original node
+        return it;
+    }
+
+    numElements--;
+    return iterator(next ? next : nullptr);
 }
 
 /*****************************************************
@@ -553,23 +637,19 @@ typename BST<T>::iterator BST<T>::begin() const noexcept
  * Return the node corresponding to a given value
  ****************************************************/
 template <typename T>
-typename BST <T> :: iterator BST<T> :: find(const T & t)
+typename BST<T>::iterator BST<T>::find(const T& t)
 {
-  BNode* p = root;
-
-   while (p != nullptr)
-   {
-      if (t == p->data)
-         return iterator(p); // Found the node
-      else if (t < p->data)
-         p = p->pLeft;       // Go left
-      else
-         p = p->pRight;      // Go right
-   }
-
-   return end(); // Not found
-
-
+    BNode* current = root;
+    while (current)
+    {
+        if (t == current->data)
+            return iterator(current);
+        else if (t < current->data)
+            current = current->pLeft;
+        else
+            current = current->pRight;
+    }
+    return end();
 }
 
 /******************************************************
@@ -658,31 +738,7 @@ void BST <T> ::BNode::addRight(T && t)
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
-   if (pNode == nullptr)
-      return *this;
-
-   //Right child exists → go to leftmost node in right subtree
-   if (pNode->pRight != nullptr)
-   {
-      pNode = pNode->pRight;
-      while (pNode->pLeft != nullptr)
-         pNode = pNode->pLeft;
-   }
-   else
-   {
-      //Go up until we come from the left
-      BNode* parent = pNode->pParent;
-      while (parent != nullptr && pNode == parent->pRight)
-      {
-         pNode = parent;
-         parent = parent->pParent;
-      }
-      pNode = parent;
-   }
-
-   return *this;
-
-
+   return *this;  
 }
 
 /**************************************************
@@ -692,30 +748,7 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
 {
-   if (pNode == nullptr)
-      return *this;
-
-   // Case 1: If there's a left child, go to its rightmost descendant
-   if (pNode->pLeft != nullptr)
-   {
-      pNode = pNode->pLeft;
-      while (pNode->pRight != nullptr)
-         pNode = pNode->pRight;
-   }
-   else
-   {
-      // Case 2: Go up until we come from the right
-      BNode* parent = pNode->pParent;
-      while (parent != nullptr && pNode == parent->pLeft)
-      {
-         pNode = parent;
-         parent = parent->pParent;
-      }
-      pNode = parent;
-   }
-
    return *this;
-
 
 }
 
