@@ -578,6 +578,8 @@ typename BST<T>::iterator BST<T>::erase(iterator& it)
          node->pParent->pRight = child;
 
       next = child;
+      while (next->pLeft)
+         next = next->pLeft;
       delete node;
    }
 
@@ -743,7 +745,29 @@ void BST <T> ::BNode::addRight(T && t)
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
-   return *this;  
+   if (!pNode) return *this;
+
+   // Case 1: If there's a right subtree, go to its leftmost node
+   if (pNode->pRight)
+   {
+      pNode = pNode->pRight;
+      while (pNode->pLeft)
+         pNode = pNode->pLeft;
+   }
+   // Case 2: No right subtree — go up until we come from a left child
+   else
+   {
+      BNode* parent = pNode->pParent;
+      while (parent && pNode == parent->pRight)
+      {
+         pNode = parent;
+         parent = parent->pParent;
+      }
+      pNode = parent;
+   }
+
+   return *this;
+
 }
 
 /**************************************************
@@ -753,7 +777,29 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
 {
+   if (!pNode) return *this;
+
+   // Case 1: If there's a left subtree, go to its rightmost node
+   if (pNode->pLeft)
+   {
+      pNode = pNode->pLeft;
+      while (pNode->pRight)
+         pNode = pNode->pRight;
+   }
+   // Case 2: No left subtree — go up until we come from a right child
+   else
+   {
+      BNode* parent = pNode->pParent;
+      while (parent && pNode == parent->pLeft)
+      {
+         pNode = parent;
+         parent = parent->pParent;
+      }
+      pNode = parent;
+   }
+
    return *this;
+
 
 }
 
