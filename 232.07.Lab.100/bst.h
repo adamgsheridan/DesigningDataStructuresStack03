@@ -250,10 +250,7 @@ BST <T> ::BST()
  * BST :: COPY CONSTRUCTOR
  * Copy one tree to another
  ********************************************/
- /*********************************************
-  * BST :: COPY CONSTRUCTOR
-  * Copy one tree to another
-  ********************************************/
+
 template <typename T>
 BST<T>::BST(const BST<T>& rhs)
 {
@@ -519,81 +516,89 @@ std::pair<typename BST<T>::iterator, bool> BST<T>::insert(T&& t, bool keepUnique
 template <typename T>
 typename BST<T>::iterator BST<T>::erase(iterator& it)
 {
-    // If iterator is invalid or at end, do nothing
-    if (it == end() || !it.pNode)
-        return end();
+   if (it == end() || !it.pNode)
+      return end();
 
-    BNode* node = it.pNode;       // node to be deleted
-    BNode* parent = node->pParent;  // parent of the node
-    BNode* next = nullptr;        // node to return after deletion
+   BNode* node = it.pNode;
+   BNode* next = nullptr;
 
-    // ===== CASE 1: Node has NO children =====
-    if (!node->pLeft && !node->pRight)
-    {
-        if (!parent)
-        {
-            // Node is root, tree becomes empty
-            root = nullptr;
-        }
-        else if (parent->pLeft == node)
-        {
-            parent->pLeft = nullptr;
-        }
-        else
-        {
-            parent->pRight = nullptr;
-        }
+   // ===== CASE 3: Two children =====
+   if (node->pLeft && node->pRight)
+   {
+      // Find in-order successor
+      BNode* successor = node->pRight;
+      while (successor->pLeft)
+         successor = successor->pLeft;
 
-        next = parent;  // The iterator after erase could point to parent
-        delete node;
-    }
+      // Successor's parent and child
+      BNode* sParent = successor->pParent;
+      BNode* sChild = successor->pRight;
 
-    // ===== CASE 2: Node has ONE child =====
-    else if (!node->pLeft || !node->pRight)
-    {
-        // Determine which child exists
-        BNode* child = (node->pLeft) ? node->pLeft : node->pRight;
-        child->pParent = parent;
+      // Detach successor from its current position
+      if (sParent->pLeft == successor)
+         sParent->pLeft = sChild;
+      else
+         sParent->pRight = sChild;
 
-        if (!parent)
-        {
-            // Node is root
-            root = child;
-        }
-        else if (parent->pLeft == node)
-        {
-            parent->pLeft = child;
-        }
-        else
-        {
-            parent->pRight = child;
-        }
+      if (sChild)
+         sChild->pParent = sParent;
 
-        next = child;   // Move iterator to the promoted child
-        delete node;
-    }
+      // Transplant successor into node's position
+      successor->pLeft = node->pLeft;
+      if (node->pLeft)
+         node->pLeft->pParent = successor;
 
-    // ===== CASE 3: Node has TWO children =====
-    else
-    {
-        // Find in-order successor (smallest in right subtree)
-        BNode* successor = node->pRight;
-        while (successor->pLeft)
-            successor = successor->pLeft;
+      successor->pRight = node->pRight;
+      if (node->pRight)
+         node->pRight->pParent = successor;
 
-        // Copy successor's data into current node
-        node->data = successor->data;
+      successor->pParent = node->pParent;
+      if (!node->pParent)
+         root = successor;
+      else if (node->pParent->pLeft == node)
+         node->pParent->pLeft = successor;
+      else
+         node->pParent->pRight = successor;
 
-        // Recursively erase the successor
-        iterator temp(successor);
-        erase(temp);
+      next = successor;
+      delete node;
+   }
 
-        // Iterator remains pointing at original node
-        return it;
-    }
+   // ===== CASE 2: One child =====
+   else if (node->pLeft || node->pRight)
+   {
+      BNode* child = node->pLeft ? node->pLeft : node->pRight;
+      child->pParent = node->pParent;
 
-    numElements--;
-    return iterator(next ? next : nullptr);
+      if (!node->pParent)
+         root = child;
+      else if (node->pParent->pLeft == node)
+         node->pParent->pLeft = child;
+      else
+         node->pParent->pRight = child;
+
+      next = child;
+      delete node;
+   }
+
+   // ===== CASE 1: No children =====
+   else
+   {
+      if (!node->pParent)
+         root = nullptr;
+      else if (node->pParent->pLeft == node)
+         node->pParent->pLeft = nullptr;
+      else
+         node->pParent->pRight = nullptr;
+
+      next = node->pParent;
+      delete node;
+   }
+
+
+
+   numElements--;
+   return iterator(next);
 }
 
 /*****************************************************

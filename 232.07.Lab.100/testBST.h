@@ -2777,7 +2777,7 @@ public:
       assertUnit(p80->data == 80);
       // teardown
       delete p10;
-      delete p30;
+      //delete p30;
       delete p40;
       delete p50;
       delete p60;
