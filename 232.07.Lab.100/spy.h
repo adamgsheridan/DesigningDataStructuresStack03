@@ -124,28 +124,27 @@ public:
    }
    
    // compare the values
-   bool operator==(const Spy & rhs) const
+   bool operator==(const Spy& rhs) const
    {
       counters[EQUALS]++;
-      if (rhs.empty() && empty())
+      if (empty() && rhs.empty())
          return true;
-      if (!rhs.empty() && !empty())
-         return get() == rhs.get();
-      return false;
+      if (empty() || rhs.empty())
+         return false;
+      return get() == rhs.get(); // safe now
    }
    
    // a null value is assumed to be the smallest value
-   bool operator<(const Spy & rhs) const
+   bool operator<(const Spy& rhs) const
    {
       counters[LESSTHAN]++;
-      if (rhs.empty() && empty())
+      if (empty() && rhs.empty())
          return false;
-      if (!rhs.empty() && !empty())
-         return get() < rhs.get();
       if (empty())
          return true;
-      else
+      if (rhs.empty())
          return false;
+      return get() < rhs.get(); // safe now
    }
    
    // reset the counters for a new test

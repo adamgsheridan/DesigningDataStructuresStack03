@@ -1,4 +1,4 @@
-/***********************************************************************
+﻿/***********************************************************************
  * Header:
  *    BST
  * Summary:
@@ -396,10 +396,13 @@ BST<T>& BST<T>::operator=(const BST<T>& rhs)
 template <typename T>
 BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 {
-   clear();
-   for (const T& t : il)
-      insert(t);
+   clear(); // delete existing tree
+
+   for (auto it = il.begin(); it != il.end(); ++it)
+      insert(*it); // ensures copy constructor is used
+
    return *this;
+
 }
 
 /*********************************************
@@ -438,76 +441,95 @@ void BST <T> :: swap (BST <T>& rhs)
 template <typename T>
 std::pair<typename BST<T>::iterator, bool> BST<T>::insert(const T& t, bool keepUnique)
 {
-    BNode* newNode = new BNode(t);
-    if (!root)
-    {
-        root = newNode;
-        numElements++;
-        return { iterator(root), true };
-    }
+   if (!root)
+   {
+      root = new BNode(t);
+      numElements++;
+      return { iterator(root), true };
+   }
 
-    BNode* current = root;
-    BNode* parent = nullptr;
+   BNode* current = root;
+   BNode* parent = nullptr;
+   bool wentLeft = false;
 
-    while (current)
-    {
-        parent = current;
-        if (t < current->data)
-            current = current->pLeft;
-        else if (keepUnique && !(t < current->data) && !(current->data < t))
-            return { iterator(current), false };
-        else
-            current = current->pRight;
-    }
+   while (current)
+   {
+      parent = current;
 
-    newNode->pParent = parent;
-    if (newNode->data < parent->data)
-        parent->pLeft = newNode;
-    else
-        parent->pRight = newNode;
+      // ✅ Check equality first
+      if (keepUnique && t == current->data)
+         return { iterator(current), false };
 
-    numElements++;
-    return { iterator(newNode), true };
+      if (t < current->data)
+      {
+         current = current->pLeft;
+         wentLeft = true;
+      }
+      else
+      {
+         current = current->pRight;
+         wentLeft = false;
+      }
+   }
+
+   BNode* newNode = new BNode(t);
+   newNode->pParent = parent;
+
+   if (wentLeft)
+      parent->pLeft = newNode;
+   else
+      parent->pRight = newNode;
+
+   numElements++;
+   return { iterator(newNode), true };
 }
-
 
 
 template <typename T>
 std::pair<typename BST<T>::iterator, bool> BST<T>::insert(T&& t, bool keepUnique)
 {
-    BNode* newNode = new BNode(std::move(t));
-    if (!root)
-    {
-        root = newNode;
-        numElements++;
-        return { iterator(root), true };
-    }
+   if (!root)
+   {
+      root = new BNode(std::move(t));
+      numElements++;
+      return { iterator(root), true };
+   }
 
-    BNode* current = root;
-    BNode* parent = nullptr;
+   BNode* current = root;
+   BNode* parent = nullptr;
+   bool wentLeft = false;
 
-    while (current)
-    {
-        parent = current;
-        if (newNode->data < current->data)
-            current = current->pLeft;
-        else if (keepUnique && !(newNode->data < current->data) && !(current->data < newNode->data))
-            return { iterator(current), false };
-        else
-            current = current->pRight;
-    }
+   while (current)
+   {
+      parent = current;
 
-    newNode->pParent = parent;
-    if (newNode->data < parent->data)
-        parent->pLeft = newNode;
-    else
-        parent->pRight = newNode;
+      // ✅ Check equality first at every node
+      if (keepUnique && t == current->data)
+         return { iterator(current), false };
 
-    numElements++;
-    return { iterator(newNode), true };
+      if (t < current->data)
+      {
+         current = current->pLeft;
+         wentLeft = true;
+      }
+      else
+      {
+         current = current->pRight;
+         wentLeft = false;
+      }
+   }
+
+   BNode* newNode = new BNode(std::move(t));
+   newNode->pParent = parent;
+
+   if (wentLeft)
+      parent->pLeft = newNode;
+   else
+      parent->pRight = newNode;
+
+   numElements++;
+   return { iterator(newNode), true };
 }
-
-
 
 /*************************************************
  * BST :: ERASE
@@ -754,7 +776,7 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
       while (pNode->pLeft)
          pNode = pNode->pLeft;
    }
-   // Case 2: No right subtree � go up until we come from a left child
+   // Case 2: No right subtree — go up until we come from a left child
    else
    {
       BNode* parent = pNode->pParent;
@@ -786,7 +808,7 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
       while (pNode->pRight)
          pNode = pNode->pRight;
    }
-   // Case 2: No left subtree � go up until we come from a right child
+   // Case 2: No left subtree — go up until we come from a right child
    else
    {
       BNode* parent = pNode->pParent;
