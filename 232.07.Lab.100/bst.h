@@ -456,7 +456,7 @@ std::pair<typename BST<T>::iterator, bool> BST<T>::insert(const T& t, bool keepU
    {
       parent = current;
 
-      // ✅ Check equality first
+      // Check equality first
       if (keepUnique && t == current->data)
          return { iterator(current), false };
 
@@ -503,7 +503,7 @@ std::pair<typename BST<T>::iterator, bool> BST<T>::insert(T&& t, bool keepUnique
    {
       parent = current;
 
-      // ✅ Check equality first at every node
+      // Check equality first at every node
       if (keepUnique && t == current->data)
          return { iterator(current), false };
 
