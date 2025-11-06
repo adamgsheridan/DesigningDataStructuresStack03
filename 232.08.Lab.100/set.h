@@ -140,11 +140,13 @@ public:
    //
    bool   empty() const noexcept 
    { 
-      return true;    
+	   // Return true if bst is empty
+       return bst.empty();
    }
    size_t size() const noexcept 
    { 
-      return 99;     
+	   // Return the size of bst
+       return bst.size();
    }
 
    //
@@ -152,22 +154,27 @@ public:
    //
    std::pair<iterator, bool> insert(const T& t)
    {
-      auto result = bst.insert(t, true); // insert into BST, enforcing uniqueness
-      return std::make_pair(iterator(result.first), result.second);
-
+	   // Insert t into bst
+       auto result = bst.insert(t, true);
+	   return std::pair<iterator, bool>(iterator(result.first), result.second);
    }
    std::pair<iterator, bool> insert(T&& t)
    {
-      auto result = bst.insert(std::move(t), true); // move into BST
-      return std::make_pair(iterator(result.first), result.second);
-
+	  // Insert by move
+      auto result = bst.insert(std::move(t), true);
+	  return std::pair<iterator, bool>(iterator(result.first), result.second);
    }
    void insert(const std::initializer_list <T>& il)
    {
+	   for (auto& item : il) // Iterate through each item in the initializer list
+		   bst.insert(item, true); // Insert each item in the initializer list
+	   
    }
    template <class Iterator>
    void insert(Iterator first, Iterator last)
    {
+	   for (auto it = first; it != last; ++it) // Iterate through the range
+		   bst.insert(*it, true); // Insert each item in the range
    }
 
 
@@ -176,19 +183,34 @@ public:
    //
    void clear() noexcept 
    { 
-		bst.clear();
+	   bst.clear(); // Clear the bst
    }
    iterator erase(iterator &it)
    { 
-      return iterator(); 
+	   auto result = bst.erase(it.it); // Erase
+	   return iterator(result); // Return new iterator
    }
-   size_t erase(const T & t) 
+   size_t erase(const T& t)
    {
-      return 99;
+       auto it = bst.find(t); // Find t in bst
+       if (it != bst.end()) // If found
+       {
+           bst.erase(it);
+           return 1;  // one item removed
+       }
+       return 0;      // nothing removed
    }
    iterator erase(iterator &itBegin, iterator &itEnd)
    {
-      return iterator();
+	   auto it = itBegin;
+       while (it != itEnd)
+       {
+		   auto temp = it;
+		   ++temp;
+		   bst.erase(it.it);
+		   it = temp;
+       }
+	   return itEnd;
    }
 
 private:
