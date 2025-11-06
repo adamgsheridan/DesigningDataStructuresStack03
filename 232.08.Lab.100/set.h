@@ -13,7 +13,7 @@
 *        set                 : A class that represents a Set
 *        set::iterator       : An iterator through Set
 * Author
-*    <Your name here>
+*    Adam Sheridan, McClain Lindsay, and Trevaye Morris
 ************************************************************************/
 
 #pragma once

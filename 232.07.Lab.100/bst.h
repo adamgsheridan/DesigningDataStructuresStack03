@@ -695,9 +695,13 @@ typename BST<T>::iterator BST<T>::find(const T& t)
  * Add a node to the left of the current node
  ******************************************************/
 template <typename T>
-void BST <T> :: BNode :: addLeft (BNode * pNode)
+void BST<T>::BNode::addLeft(BNode* pNode)
 {
-
+    if (pNode)
+    {
+        pLeft = pNode;          // point my left child to that node
+        pNode->pParent = this;
+    }
 }
 
 /******************************************************
@@ -705,9 +709,13 @@ void BST <T> :: BNode :: addLeft (BNode * pNode)
  * Add a node to the right of the current node
  ******************************************************/
 template <typename T>
-void BST <T> :: BNode :: addRight (BNode * pNode)
+void BST<T>::BNode::addRight(BNode* pNode)
 {
-
+    if (pNode)
+    {
+        pRight = pNode;
+        pNode->pParent = this;
+    }
 }
 
 /******************************************************
@@ -715,9 +723,10 @@ void BST <T> :: BNode :: addRight (BNode * pNode)
  * Add a node to the left of the current node
  ******************************************************/
 template <typename T>
-void BST<T> :: BNode :: addLeft (const T & t)
+void BST<T>::BNode::addLeft(const T& t)
 {
-
+    pLeft = new BNode(t);       // make a new node
+    pLeft->pParent = this;      // connect parent
 }
 
 /******************************************************
@@ -725,9 +734,10 @@ void BST<T> :: BNode :: addLeft (const T & t)
  * Add a node to the left of the current node
  ******************************************************/
 template <typename T>
-void BST<T> ::BNode::addLeft(T && t)
+void BST<T>::BNode::addLeft(T&& t)
 {
-
+    pLeft = new BNode(std::move(t));
+    pLeft->pParent = this;
 }
 
 /******************************************************
@@ -735,9 +745,10 @@ void BST<T> ::BNode::addLeft(T && t)
  * Add a node to the right of the current node
  ******************************************************/
 template <typename T>
-void BST <T> :: BNode :: addRight (const T & t)
+void BST<T>::BNode::addRight(const T& t)
 {
-
+    pRight = new BNode(t);
+    pRight->pParent = this;
 }
 
 /******************************************************
@@ -745,9 +756,10 @@ void BST <T> :: BNode :: addRight (const T & t)
  * Add a node to the right of the current node
  ******************************************************/
 template <typename T>
-void BST <T> ::BNode::addRight(T && t)
+void BST<T>::BNode::addRight(T&& t)
 {
-
+    pRight = new BNode(std::move(t));
+    pRight->pParent = this;
 }
 
 
