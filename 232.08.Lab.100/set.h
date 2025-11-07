@@ -42,30 +42,28 @@ public:
    // 
    // Construct
    //
-   set() 
-   { 
-		
-   }
+   set() {}
    set(const set& rhs) : bst(rhs.bst) {}
 
    set(set && rhs) 
    { 
+	  // Move constructor.
       bst = std::move(rhs.bst);
    }
    set(const std::initializer_list <T> & il) 
    {
+	  // Initializer list constructor.
       for (const auto& item : il)
       {
-			//std::cout << "Inserting element in initializer list constructor\n";
          insert(item);
       }
    }
    template <class Iterator>
    set(Iterator first, Iterator last) 
    {
+	  // Range constructor.
       for (; first != last; ++first)
          insert(*first);
-
    }
 
    ~set() { clear(); }
@@ -76,10 +74,11 @@ public:
 
    set & operator = (const set & rhs)
    {
+	  // Copy assignment operator.
       if (this != &rhs)
       {
-         clear();            // Clean up current tree
-         bst = rhs.bst;      // Use BST's copy assignment (which uses the copy constructor)
+         clear();
+         bst = rhs.bst;
       }
       return *this;
 
@@ -88,6 +87,7 @@ public:
    }
    set & operator = (set && rhs)
    {
+	  // Move assignment operator.
       if (this != &rhs)
       {
          clear();
@@ -99,10 +99,9 @@ public:
    set & operator = (const std::initializer_list <T> & il)
    {
       clear();
+	  // Initializer list assignment operator.
       for (const auto& item : il)
       {
-			//std::cout << "Inserting element in initializer list assignment\n";
-         
          insert(item);
       }
       return *this;
@@ -110,6 +109,7 @@ public:
    }
    void swap(set& rhs) noexcept
    {
+	  // Swap function.
       std::swap(bst, rhs.bst);
    }
 
@@ -119,11 +119,13 @@ public:
 
    class iterator;
    iterator begin() const noexcept 
-   { 
+   {
+	  // Return iterator to beginning of bst.
       return iterator(bst.begin());
    }
    iterator end() const noexcept 
-   { 
+   {
+	  // Return iterator to end of bst.
       return iterator(bst.end());
    }
 
@@ -131,8 +133,11 @@ public:
    // Access
    //
    iterator find(const T& t) 
-   { 
-      return iterator(); 
+   {
+      // Find t in bst.
+      auto it = bst.find(t);
+
+	  return iterator(it);
    }
 
    //
@@ -140,12 +145,12 @@ public:
    //
    bool   empty() const noexcept 
    { 
-	   // Return true if bst is empty
+	   // Return true if bst is empty.
        return bst.empty();
    }
    size_t size() const noexcept 
    { 
-	   // Return the size of bst
+	   // Return the size of bst.
        return bst.size();
    }
 
@@ -154,27 +159,29 @@ public:
    //
    std::pair<iterator, bool> insert(const T& t)
    {
-	   // Insert t into bst
+	   // Insert t into bst.
        auto result = bst.insert(t, true);
 	   return std::pair<iterator, bool>(iterator(result.first), result.second);
    }
    std::pair<iterator, bool> insert(T&& t)
    {
-	  // Insert by move
+	  // Insert by move.
       auto result = bst.insert(std::move(t), true);
 	  return std::pair<iterator, bool>(iterator(result.first), result.second);
    }
    void insert(const std::initializer_list <T>& il)
    {
-	   for (auto& item : il) // Iterate through each item in the initializer list
-		   bst.insert(item, true); // Insert each item in the initializer list
+	   // Insert each item from initializer list into bst.
+	   for (auto& item : il)
+		   bst.insert(item, true);
 	   
    }
    template <class Iterator>
    void insert(Iterator first, Iterator last)
    {
-	   for (auto it = first; it != last; ++it) // Iterate through the range
-		   bst.insert(*it, true); // Insert each item in the range
+	   // Insert each item from range into bst.
+	   for (auto it = first; it != last; ++it)
+		   bst.insert(*it, true);
    }
 
 
@@ -182,26 +189,33 @@ public:
    // Remove
    //
    void clear() noexcept 
-   { 
-	   bst.clear(); // Clear the bst
+   {
+	   // Clear the bst.
+	   bst.clear();
    }
    iterator erase(iterator &it)
    { 
-	   auto result = bst.erase(it.it); // Erase
-	   return iterator(result); // Return new iterator
+	   // Erase the item at iterator it from bst.
+	   auto result = bst.erase(it.it);
+
+	   return iterator(result);
    }
    size_t erase(const T& t)
    {
-       auto it = bst.find(t); // Find t in bst
-       if (it != bst.end()) // If found
+	   // Erase t from bst.
+       auto it = bst.find(t);
+
+	   // If found, erase it and return 1.
+       if (it != bst.end())
        {
            bst.erase(it);
-           return 1;  // one item removed
+           return 1;
        }
-       return 0;      // nothing removed
+       return 0;
    }
    iterator erase(iterator &itBegin, iterator &itEnd)
    {
+	   // Erase the range from itBegin to itEnd from bst.
 	   auto it = itBegin;
        while (it != itEnd)
        {
@@ -226,20 +240,19 @@ private:
 template <typename T>
 class set <T> :: iterator
 {
-   friend class ::TestSet; // give unit tests access to the privates
+   friend class ::TestSet; // Give unit tests access to the privates.
    friend class custom::set<T>;
 
 public:
-   // constructors, destructors, and assignment operator
+   // Constructors, destructors, and assignment operator.
    iterator() 
    { 
    }
    iterator(const typename custom::BST<T>::iterator& itRHS) : it(itRHS)
-   {  
+   {
    }
-   iterator(const iterator & rhs) : it(rhs.it)
-   { 
-      
+   iterator(const iterator& rhs) : it(rhs.it)
+   {
 
    }
    iterator & operator = (const iterator & rhs)
@@ -249,30 +262,32 @@ public:
       return *this;
    }
 
-   // equals, not equals operator
+   // Equals, not equals operator.
    bool operator != (const iterator & rhs) const 
    { 
       return it != rhs.it;
    }
+
+   // Equals operator.
    bool operator == (const iterator & rhs) const 
    { 
       return it == rhs.it;
    }
 
-   // dereference operator: by-reference so we can modify the Set
+   // Dereference operator: by-reference so we can modify the Set.
    const T & operator * () const 
    { 
       return *it;
    }
 
-   // prefix increment
+   // Prefix increment.
    iterator & operator ++ ()
    {
       ++it;
       return *this;
    }
 
-   // postfix increment
+   // Postfix increment.
    iterator operator++ (int postfix)
    {
       iterator temp = *this;
@@ -281,14 +296,14 @@ public:
 
    }
    
-   // prefix decrement
+   // Prefix decrement.
    iterator & operator -- ()
    {
       --it;
       return *this;
    }
    
-   // postfix decrement
+   // Postfix decrement.
    iterator operator-- (int postfix)
    {
       iterator temp = *this;
