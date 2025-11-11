@@ -14,7 +14,7 @@
  *        BST                 : A class that represents a binary search tree
  *        BST::iterator       : An iterator through BST
  * Author
- *    <your names here>
+ *    Adam Sheridan, McClain Lindsay, and Trevaye Morris
  ************************************************************************/
 
 #pragma once
@@ -177,8 +177,14 @@ template <typename T>
 class BST <T> :: iterator
 {
    friend class ::TestBST; // give unit tests access to the privates
-   friend class ::TestSet;
    friend class ::TestMap;
+        friend class ::TestSet;
+
+        template <class KK, class VV>
+        friend class map;
+
+        template <class TT>
+        friend class set;
 public:
    // constructors and assignment
    iterator(BNode * p = nullptr)          
@@ -490,7 +496,6 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
    return *this;
 
 }
-
 
 } // namespace custom
 
