@@ -91,27 +91,26 @@ public:
    // Iterator
    //
    class iterator;
-   iterator begin() 
-   { 
-      return iterator();
+   iterator begin()
+   {
+       // return the BST begin iterator wrapped in a map iterator
+       return iterator(bst.begin());
    }
-   iterator end() 
-   { 
-      return iterator();    
+   iterator end()
+   {
+       // return the BST end iterator wrapped in a map iterator
+       return iterator(bst.end());
    }
 
    // 
    // Access
    //
-   const V & operator [] (const K & k) const;
-         V & operator [] (const K & k);
-   const V & at (const K& k) const;
-         V & at (const K& k);
-   iterator    find(const K & k)
-   {
-      return iterator ();
-   }
-
+   const V& operator [] (const K& key) const;
+   V& operator [] (const K& key);
+   const V& at(const K& key) const;
+   V& at(const K& key);
+   iterator find(const K& key);
+  
    //
    // Insert
    //
@@ -171,36 +170,31 @@ public:
    //
    // Construct
    //
-   iterator()
-   {
-   }
-   iterator(const typename BST < pair <K, V> > :: iterator & rhs)
-   { 
-   }
-   iterator(const iterator & rhs) 
-   { 
-   }
+   iterator(){}
+   iterator(const typename BST < pair <K, V> > :: iterator & rhs) : it(rhs) {}
+   iterator(const iterator & rhs) : it(rhs.it) {}
 
    //
    // Assign
    //
    iterator & operator = (const iterator & rhs)
    {
+	   it = rhs.it;
       return *this;
    }
 
    //
    // Compare
    //
-   bool operator == (const iterator & rhs) const { return false; }
-   bool operator != (const iterator & rhs) const { return false; }
+   bool operator == (const iterator & rhs) const { return it == rhs.it; }
+   bool operator != (const iterator & rhs) const { return it != rhs.it; }
 
    // 
    // Access
    //
    const pair <K, V> & operator * () const
    {
-      return *(new pair<K,V>);
+	   return *it; // dereference the BST iterator
    }
 
    //
@@ -208,19 +202,25 @@ public:
    //
    iterator & operator ++ ()
    {
+	   ++it; // increment the BST iterator
       return *this;
    }
-   iterator operator ++ (int postfix)
+   iterator operator ++ (int)
    {
-      return *this;
+	   iterator temp = *this;
+	   ++it; // increment the BST iterator
+      return temp;
    }
    iterator & operator -- ()
    {
+	   --it; // decrement the BST iterator
       return *this;
    }
-   iterator  operator -- (int postfix)
+   iterator  operator -- (int)
    {
-      return *this;
+	   iterator temp(*this);
+	   --it; // decrement the BST iterator
+      return temp;
    }
 
 private:
@@ -237,7 +237,16 @@ private:
 template <typename K, typename V>
 V& map <K, V> :: operator [] (const K& key)
 {
-   return *(new V);
+    // Try to find the key in the tree
+    auto it = bst.find(custom::pair<K, V>(key, V()));
+
+    // If not found, insert a new pair with default value
+    if (it == bst.end())
+        bst.insert(custom::pair<K, V>(key, V()));
+
+    // Find again and return reference to the value
+    it = bst.find(custom::pair<K, V>(key, V()));
+    return const_cast<V&>((*it).second);
 }
 
 /*****************************************************
@@ -247,7 +256,13 @@ V& map <K, V> :: operator [] (const K& key)
 template <typename K, typename V>
 const V& map <K, V> :: operator [] (const K& key) const
 {
-   return *(new V);
+    auto it = bst.find(custom::pair<K, V>(key, V()));
+    if (it == bst.end())
+    {
+        static V empty{};
+        return empty;  // return default if not found
+    }
+    return (*it).second;
 }
 
 /*****************************************************
@@ -257,7 +272,9 @@ const V& map <K, V> :: operator [] (const K& key) const
 template <typename K, typename V>
 V& map <K, V> ::at(const K& key)
 {
-   return *(new V);
+    auto it = bst.find(custom::pair<K, V>(key, V()));
+    assert(it != bst.end());
+    return const_cast<V&>((*it).second);
 }
 
 /*****************************************************
@@ -267,7 +284,20 @@ V& map <K, V> ::at(const K& key)
 template <typename K, typename V>
 const V& map <K, V> ::at(const K& key) const
 {
-   return *(new V);
+    auto it = bst.find(custom::pair<K, V>(key, V()));
+    assert(it != bst.end());
+    return (*it).second;
+}
+
+/*****************************************************
+ * MAP :: FIND
+ * Find an element in the map
+ ****************************************************/
+template <typename K, typename V>
+typename map<K, V>::iterator map<K, V>::find(const K& key)
+{
+    // Use the BST’s find() to locate the key/value pair
+    return iterator(bst.find(custom::pair<K, V>(key, V())));
 }
 
 /*****************************************************
