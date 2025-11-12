@@ -116,11 +116,32 @@ public:
    //
    custom::pair<typename map::iterator, bool> insert(Pairs && rhs)
    {
-      return make_pair(iterator(), false);
+      auto it = bst.find(custom::pair<K, V>(rhs.first, V()));
+      if (it != bst.end())
+         return custom::make_pair(iterator(it), false);
+
+      auto result = bst.insert(std::move(rhs)); // returns std::pair<BST::iterator, bool>
+      return custom::make_pair(iterator(result.first), result.second);
+
+
+
    }
    custom::pair<typename map::iterator, bool> insert(const Pairs & rhs)
    {
-      return make_pair(iterator(), false);
+      // Try to find the key
+      auto it = bst.find(custom::pair<K, V>(rhs.first, V()));
+
+      // If found, return iterator and false (no insertion)
+      if (it != bst.end())
+         return custom::make_pair(iterator(it), false);
+
+      // Otherwise, insert the new pair
+      bst.insert(rhs);
+
+      // Find again to get iterator to inserted element
+      it = bst.find(custom::pair<K, V>(rhs.first, V()));
+      return custom::make_pair(iterator(it), true);
+
    }
 
    template <class Iterator>
@@ -136,6 +157,7 @@ public:
    //
    void clear() noexcept
    {
+      bst.clear();
    }
    size_t erase(const K& k);
    iterator erase(iterator it);
@@ -144,8 +166,8 @@ public:
    //
    // Status
    //
-   bool empty() const noexcept { return false; }
-   size_t size() const noexcept { return 99; }
+   bool empty() const noexcept { return bst.empty(); }
+   size_t size() const noexcept { return bst.size(); } 
 
 
 private:
@@ -272,9 +294,11 @@ const V& map <K, V> :: operator [] (const K& key) const
 template <typename K, typename V>
 V& map <K, V> ::at(const K& key)
 {
-    auto it = bst.find(custom::pair<K, V>(key, V()));
-    assert(it != bst.end());
-    return const_cast<V&>((*it).second);
+   auto it = bst.find(custom::pair<K, V>(key, V()));
+   if (it == bst.end())
+      throw std::out_of_range("map::at() - key not found");
+   return const_cast<V&>((*it).second);
+
 }
 
 /*****************************************************
@@ -284,9 +308,11 @@ V& map <K, V> ::at(const K& key)
 template <typename K, typename V>
 const V& map <K, V> ::at(const K& key) const
 {
-    auto it = bst.find(custom::pair<K, V>(key, V()));
-    assert(it != bst.end());
-    return (*it).second;
+   auto it = bst.find(custom::pair<K, V>(key, V()));
+   if (it == bst.end())
+      throw std::out_of_range("map::at() const - key not found");
+   return (*it).second;
+
 }
 
 /*****************************************************
@@ -316,7 +342,13 @@ void swap(map <K, V>& lhs, map <K, V>& rhs)
 template <typename K, typename V>
 size_t map<K, V>::erase(const K& k)
 {
-   return size_t(99);
+   auto it = bst.find(custom::pair<K, V>(k, V()));
+   if (it == bst.end())
+      return 0;
+
+   bst.erase(it);
+   return 1;
+
 }
 
 /*****************************************************
@@ -326,7 +358,11 @@ size_t map<K, V>::erase(const K& k)
 template <typename K, typename V>
 typename map<K, V>::iterator map<K, V>::erase(map<K, V>::iterator first, map<K, V>::iterator last)
 {
-   return iterator();
+   while (first != last)
+      first = erase(first);
+   return last;
+
+
 }
 
 /*****************************************************
@@ -336,7 +372,14 @@ typename map<K, V>::iterator map<K, V>::erase(map<K, V>::iterator first, map<K, 
 template <typename K, typename V>
 typename map<K, V>::iterator map<K, V>::erase(map<K, V>::iterator it)
 {
-   return iterator();
+   if (it == end())
+      return end();
+
+   auto next = it;
+   ++next;
+   bst.erase(it.it); // erase using underlying BST iterator
+   return next;
+
 }
 
 }; //  namespace custom
