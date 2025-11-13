@@ -14,7 +14,7 @@
  *        map                 : A class that represents a map
  *        map::iterator       : An iterator through a map
  * Author
- *    <your names here>
+ *    Adam Sheridan, McClain Lindsay, and Trevaye Morris
  ************************************************************************/
 
 #pragma once
@@ -51,40 +51,72 @@ public:
    // 
    // Construct
    //
-   map() 
-   {
-   }
+   map() {}
+
    map(const map &  rhs) 
    { 
+      // Copy the BST from rhs to this map
+      bst = rhs.bst;
    }
    map(map && rhs) 
-   { 
+   {
+      // Move the BST from rhs to this map
+      bst = std::move(rhs.bst);
    }
    template <class Iterator>
    map(Iterator first, Iterator last) 
    {
+      // Insert each pair from the range into the BST
+      for (Iterator it = first; it != last; ++it)
+      {
+         bst.insert(*it);
+      }
    }
    map(const std::initializer_list <Pairs>& il) 
    {
+      // Insert each pair from the initializer list into the BST
+      for (const auto& pair : il)
+      {
+         bst.insert(pair);
+      }
    }
   ~map()         
-   {
-   }
+  {
+     clear();
+  }
 
    //
    // Assign
    //
    map & operator = (const map & rhs) 
    {
+      // Copy the BST from rhs to this map
+      if (this != &rhs)
+      {
+         bst = rhs.bst;
+      }
       return *this;
    }
    map & operator = (map && rhs)
    {
-      return *this;
+       // Move the BST from rhs to this map
+       if (this != &rhs)
+      {
+         bst = std::move(rhs.bst);
+      }
+	   return *this;
    }
    map & operator = (const std::initializer_list <Pairs> & il)
    {
-      return *this;
+       // Clear the existing BST
+       clear();
+
+       // Insert each pair from the initializer list into the BST
+       for (const auto& pair : il)
+       {
+           bst.insert(pair);
+       }
+	   return *this;
    }
    
    // 
@@ -216,7 +248,8 @@ public:
    //
    const pair <K, V> & operator * () const
    {
-	   return *it; // dereference the BST iterator
+       // Dereference the BST iterator.
+	   return *it;
    }
 
    //
@@ -224,30 +257,34 @@ public:
    //
    iterator & operator ++ ()
    {
-	   ++it; // increment the BST iterator
+       // Increment the BST iterator.
+	   ++it;
       return *this;
    }
    iterator operator ++ (int)
    {
+       // Increment the BST iterator.
 	   iterator temp = *this;
-	   ++it; // increment the BST iterator
+	   ++it;
       return temp;
    }
    iterator & operator -- ()
    {
-	   --it; // decrement the BST iterator
+       // Decrement the BST iterator
+	   --it;
       return *this;
    }
    iterator  operator -- (int)
    {
+       // Decrement the BST iterator
 	   iterator temp(*this);
-	   --it; // decrement the BST iterator
+	   --it;
       return temp;
    }
 
 private:
 
-   // Member variable
+   // Member variable.
    typename BST < pair <K, V >>  :: iterator it;   
 };
 
@@ -278,11 +315,12 @@ V& map <K, V> :: operator [] (const K& key)
 template <typename K, typename V>
 const V& map <K, V> :: operator [] (const K& key) const
 {
+	// Try to find the key in the tree.
     auto it = bst.find(custom::pair<K, V>(key, V()));
     if (it == bst.end())
     {
         static V empty{};
-        return empty;  // return default if not found
+        return empty;
     }
     return (*it).second;
 }
@@ -294,9 +332,10 @@ const V& map <K, V> :: operator [] (const K& key) const
 template <typename K, typename V>
 V& map <K, V> ::at(const K& key)
 {
+   // Try to find the key in the tree.
    auto it = bst.find(custom::pair<K, V>(key, V()));
    if (it == bst.end())
-      throw std::out_of_range("map::at() - key not found");
+      throw std::out_of_range("invalid map<K, T> key");
    return const_cast<V&>((*it).second);
 
 }
@@ -308,6 +347,7 @@ V& map <K, V> ::at(const K& key)
 template <typename K, typename V>
 const V& map <K, V> ::at(const K& key) const
 {
+   // Try to find the key in the tree.
    auto it = bst.find(custom::pair<K, V>(key, V()));
    if (it == bst.end())
       throw std::out_of_range("map::at() const - key not found");
@@ -322,7 +362,7 @@ const V& map <K, V> ::at(const K& key) const
 template <typename K, typename V>
 typename map<K, V>::iterator map<K, V>::find(const K& key)
 {
-    // Use the BST’s find() to locate the key/value pair
+    // Use the BST’s find() to locate the key/value pair.
     return iterator(bst.find(custom::pair<K, V>(key, V())));
 }
 
@@ -333,6 +373,8 @@ typename map<K, V>::iterator map<K, V>::find(const K& key)
 template <typename K, typename V>
 void swap(map <K, V>& lhs, map <K, V>& rhs)
 {
+	// Swap the underlying BSTs.
+	lhs.bst.swap(rhs.bst);
 }
 
 /*****************************************************
@@ -342,10 +384,14 @@ void swap(map <K, V>& lhs, map <K, V>& rhs)
 template <typename K, typename V>
 size_t map<K, V>::erase(const K& k)
 {
+   // Try to find the key.
    auto it = bst.find(custom::pair<K, V>(k, V()));
+
+   // If not found, return 0.
    if (it == bst.end())
       return 0;
 
+   // Otherwise, erase the element and return 1.
    bst.erase(it);
    return 1;
 
@@ -358,10 +404,10 @@ size_t map<K, V>::erase(const K& k)
 template <typename K, typename V>
 typename map<K, V>::iterator map<K, V>::erase(map<K, V>::iterator first, map<K, V>::iterator last)
 {
+   // Erase elements in the range [first, last).
    while (first != last)
       first = erase(first);
    return last;
-
 
 }
 
@@ -372,12 +418,14 @@ typename map<K, V>::iterator map<K, V>::erase(map<K, V>::iterator first, map<K, 
 template <typename K, typename V>
 typename map<K, V>::iterator map<K, V>::erase(map<K, V>::iterator it)
 {
+   // If the iterator is at the end, return end().
    if (it == end())
       return end();
 
+   // Get the next iterator before erasing.
    auto next = it;
    ++next;
-   bst.erase(it.it); // erase using underlying BST iterator
+   bst.erase(it.it);
    return next;
 
 }
