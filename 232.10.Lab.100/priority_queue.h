@@ -83,11 +83,13 @@ public:
    //
    size_t size()  const 
    { 
-      return 99;   
+      return container.size();
+
    }
    bool empty() const 
    { 
-      return false;  
+      return container.empty();
+
    }
    
 private:
@@ -106,7 +108,13 @@ private:
 template <class T>
 const T & priority_queue <T> :: top() const
 {
-   return *(new T);
+   if (container.empty())
+   {
+      throw std::out_of_range("priority_queue::top() called on empty queue");
+   }
+   return container[0];  // root of the heap
+
+
 }
 
 /**********************************************
@@ -140,7 +148,23 @@ void priority_queue <T> :: push(T && t)
 template <class T>
 bool priority_queue <T> :: percolateDown(size_t indexHeap)
 {
+   size_t left = 2 * indexHeap + 1; 
+   size_t right = 2 * indexHeap + 2; 
+   size_t largest = indexHeap; 
+
+   if (left < container.size() && container[left] > container[largest]) 
+      largest = left; 
+   if (right < container.size() && container[right] > container[largest]) 
+      largest = right; 
+
+   if (largest != indexHeap) 
+   {
+      std::swap(container[indexHeap], container[largest]); 
+      percolateDown(largest); 
+      return true; 
+   }
    return false;
+
 }
 
 /************************************************
@@ -150,6 +174,12 @@ bool priority_queue <T> :: percolateDown(size_t indexHeap)
 template <class T>
 void priority_queue <T> ::heapify()
 {
+   // Start from the last non-leaf node and percolate down
+   for (int i = (int)container.size() / 2 - 1; i >= 0; --i)
+   {
+      percolateDown(i);
+   }
+
 }
 
 /************************************************
