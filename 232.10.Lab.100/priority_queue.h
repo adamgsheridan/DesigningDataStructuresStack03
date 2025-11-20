@@ -20,6 +20,8 @@
 
 #include <cassert>
 #include "vector.h"
+#include <utility> // for std::swap
+#include <stdexcept> // for std::out_of_range
 
 class TestPQueue;    // forward declaration for unit test class
 
@@ -41,26 +43,62 @@ public:
    //
    // construct
    //
-   priority_queue() 
-   {
-   }
+	priority_queue() = default;
+
+	// copy and move construct
    priority_queue(const priority_queue &  rhs)  
-   { 
+   {
+	   container = rhs.container;
    }
    priority_queue(priority_queue && rhs)  
-   { 
+   {
+	   container = std::move(rhs.container);
+	   heapify(); // ensure the moved container is a heap
    }
+
+   // range construct
    template <class Iterator>
    priority_queue(Iterator first, Iterator last) 
    {
+       for (auto it = first; it != last; ++it)
+           container.push_back(*it);
+	   heapify();
    }
+   // construct from vector
    explicit priority_queue (custom::vector<T> && rhs) 
    {
+       container = std::move(rhs);
+	   heapify();
    }
+   // construct from copy of vector
    explicit priority_queue (custom::vector<T>& rhs)
    {
+       container = rhs;
+	   heapify();
    }
   ~priority_queue() {}
+
+  //
+  // assign 
+  //
+   priority_queue & operator = (const priority_queue & rhs)
+   {
+       if (this != &rhs)
+       {
+           container = rhs.container;
+       }
+       return *this;
+   }
+
+   priority_queue & operator = (priority_queue && rhs)
+   {
+       if (this != &rhs)
+       {
+           container = std::move(rhs.container);
+           heapify(); // ensure the moved container is a heap
+       }
+       return *this;
+   }
 
    //
    // Access
@@ -190,6 +228,8 @@ template <class T>
 inline void swap(custom::priority_queue <T>& lhs,
                  custom::priority_queue <T>& rhs)
 {
+	using std::swap;
+	swap(lhs.container, rhs.container);
 }
 
 };
