@@ -448,7 +448,6 @@ template <typename T>
 T & vector <T> :: operator [] (size_t index)
 {
    return *(data + index);
-   
 }
 
 /******************************************
