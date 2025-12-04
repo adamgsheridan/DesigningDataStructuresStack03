@@ -68,11 +68,11 @@ public:
    class iterator;
    iterator begin()
    {
-      return iterator();
+      return iterator(this, 0);
    }
    iterator end()
    {
-      return iterator();
+      return iterator(this, numElements);
    }
 
    //
@@ -143,13 +143,13 @@ public:
    //
    // Construct
    //
-   iterator()
+	iterator() : id(0), pDeque(nullptr)
    {
    }
-   iterator(custom::deque<T> *pDeque, int id)
+	iterator(custom::deque<T>* pDeque, int id) : id(id), pDeque(pDeque)
    {
    }
-   iterator(const iterator& rhs)
+	iterator(const iterator& rhs) : id(rhs.id), pDeque(rhs.pDeque)
    {
    }
 
@@ -158,25 +158,36 @@ public:
    //
    iterator& operator = (const iterator& rhs)
    {
+	  id = rhs.id;
+	  pDeque = rhs.pDeque;
       return *this;
    }
 
    //
    // Compare
    //
-   bool operator == (const iterator& rhs) const { return true; }
-   bool operator != (const iterator& rhs) const { return true; }
+   bool operator == (const iterator& rhs) const 
+   { 
+	   return pDeque == rhs.pDeque && id == rhs.id;
+   }
+   bool operator != (const iterator& rhs) const 
+   { 
+	   return !(*this == rhs);
+   }
 
    // 
    // Access
    //
    const T & operator * () const
    {
-      return *(new T);
+	   int ia = pDeque->iaFromID(id);
+	   return pDeque->data[ia];
    }
+
    T& operator * () 
    {
-      return *(new T);
+	   int ia = pDeque->iaFromID(id);
+	   return pDeque->data[ia];
    }
 
    // 
@@ -184,27 +195,35 @@ public:
    //
    int operator - (iterator it) const
    {
-      return 99;
+      return id - it.id;
    }
    iterator& operator += (int offset)
    {
+	  id += offset;
       return *this;
    }
+
    iterator& operator ++ ()
    {
+	  id++;
       return *this;
    }
-   iterator operator ++ (int postfix)
+   iterator operator ++ (int)
    {
-      return *this;
+	   iterator temp = *this;
+	   id++;
+      return temp;
    }
    iterator& operator -- ()
    {
+	  id--;
       return *this;
    }
-   iterator  operator -- (int postfix)
+   iterator  operator -- (int)
    {
-      return *this;
+	   iterator temp = *this;
+	   id--;
+	   return temp;
    }
 
 private:
@@ -249,12 +268,14 @@ deque <T> & deque <T> :: operator = (const deque <T> & rhs)
 template <class T>
 const T & deque <T> :: front() const 
 {
-   return *(new T);
+	assert(numElements > 0);
+	return data[iaFront];
 }
 template <class T>
 T& deque <T> ::front()
 {
-   return *(new T);
+	assert(numElements > 0);
+	return data[iaFront];
 }
 
 /**************************************************
@@ -264,14 +285,19 @@ T& deque <T> ::front()
 template <class T>
 const T & deque <T> :: back() const 
 {
-   return *(new T);
+	assert(numElements > 0);
+	int ia = iaFromID(numElements - 1);
+	return data[ia];
+   
 }
 template <class T>
 T& deque <T> ::back()
 {
-   return *(new T);
+	assert(numElements > 0);
+	int ia = iaFromID(numElements - 1);
+	return data[ia];
 }
-
+ 
 /**************************************************
  * DEQUE :: SUBSCRIPT
  * Fetch the item in the deque
@@ -279,12 +305,16 @@ T& deque <T> ::back()
 template <class T>
 const T& deque <T> ::operator[](size_t index) const
 {
-   return *(new T);
+	assert(index < numElements);
+	int ia = iaFromID(index);
+	return data[ia];
 }
 template <class T>
 T& deque <T> ::operator[](size_t index)
 {
-   return *(new T);
+	assert(index < numElements);
+	int ia = iaFromID(index);
+	return data[ia];
 }
 
 /*****************************************************
@@ -293,6 +323,8 @@ T& deque <T> ::operator[](size_t index)
 template <class T>
 void deque <T> :: pop_back()
 {
+	assert(numElements > 0);
+	numElements--;
 }
 
 /*****************************************************
@@ -301,6 +333,9 @@ void deque <T> :: pop_back()
 template <class T>
 void deque <T> :: pop_front()
 {
+	assert(numElements > 0);
+	iaFront = (iaFront + 1) % numCapacity;
+	numElements--;
 }
 
 /******************************************************
@@ -309,6 +344,12 @@ void deque <T> :: pop_front()
 template <class T>
 void deque <T> :: push_back(const T & t) 
 {
+	if (numElements == numCapacity)
+		resize(numCapacity == 0 ? 1 : numCapacity * 2);
+
+	int ia = iaFromID(numElements);
+	data[ia] = t;
+	numElements++;
 }
 
 /******************************************************
@@ -317,6 +358,12 @@ void deque <T> :: push_back(const T & t)
 template <class T>
 void deque <T> :: push_front(const T & t) 
 {
+	if (numElements == numCapacity)
+		resize(numCapacity == 0 ? 1 : numCapacity * 2);
+
+	iaFront = (iaFront - 1 + numCapacity) % numCapacity;
+	data[iaFront] = t;
+	numElements++;
 }
 
 /****************************************************
@@ -326,6 +373,20 @@ void deque <T> :: push_front(const T & t)
 template <class T>
 void deque <T> :: resize(int newCapacity) 
 {
+	if (newCapacity < (int)numElements)
+		newCapacity = numElements;
+
+	T* NewData = new T[newCapacity];
+
+	for (size_t i = 0; i < numElements; i++)
+		NewData[i] = (*this)[i];
+
+	if (data)
+		delete[] data;
+
+	data = NewData;
+	numCapacity = newCapacity;
+	iaFront = 0;
 }
 
 } // namespace custom
