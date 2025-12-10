@@ -50,11 +50,17 @@ public:
    //
    deque() 
    { 
+      data = nullptr;
+      numCapacity = 0;
+      numElements = 0;
+      iaFront = 0;
    }
    deque(int newCapacity);
    deque(const deque <T> & rhs);
    ~deque()
    { 
+      if (data)
+         delete[] data;
    }
 
    //
@@ -105,11 +111,11 @@ public:
    //
    size_t size() const 
    { 
-      return 99; 
+      return numElements; 
    }
    bool empty() const 
    { 
-      return false; 
+      return numElements == 0; 
    }
 
    
@@ -118,7 +124,9 @@ private:
    // fetch array index from the deque index
    int iaFromID(int id) const
    {
-      return -99;
+         // wrap around using modulo arithmetic
+   return (iaFront + id) % numCapacity;
+
    }
    void resize(int newCapacity = 0);
 
@@ -221,6 +229,11 @@ private:
 template <class T>
 deque <T> :: deque(int newCapacity)
 {
+   numCapacity = newCapacity;
+   numElements = 0;
+   iaFront = 0;
+   data = (newCapacity > 0 ? new T[newCapacity] : nullptr);
+
 }
 
 /****************************************************
@@ -229,6 +242,14 @@ deque <T> :: deque(int newCapacity)
 template <class T>
 deque <T> :: deque(const deque <T> & rhs)
 {
+   numCapacity = rhs.numCapacity;
+   numElements = rhs.numElements;
+   iaFront = rhs.iaFront;
+   data = (numCapacity > 0 ? new T[numCapacity] : nullptr);
+
+   for (size_t i = 0; i < numElements; ++i)
+      data[iaFromID(i)] = rhs[i];
+
 }
 
 
@@ -238,7 +259,29 @@ deque <T> :: deque(const deque <T> & rhs)
 template <class T>
 deque <T> & deque <T> :: operator = (const deque <T> & rhs)
 {
+   if (this != &rhs)
+   {
+      // reallocate if needed
+      if (numCapacity < rhs.numElements)
+      {
+         if (data)
+            delete[] data;
+         numCapacity = rhs.numCapacity;
+         data = (numCapacity > 0 ? new T[numCapacity] : nullptr);
+      }
+
+      numElements = rhs.numElements;
+      iaFront = 0; // unwrap
+
+      for (size_t i = 0; i < numElements; ++i)
+      {
+         // copy logical element i from rhs
+         int rhsIndex = (rhs.iaFront + static_cast<int>(i)) % rhs.numCapacity;
+         data[i] = rhs.data[rhsIndex];
+      }
+   }
    return *this;
+
 }
 
 
@@ -279,12 +322,14 @@ T& deque <T> ::back()
 template <class T>
 const T& deque <T> ::operator[](size_t index) const
 {
-   return *(new T);
+   assert(index < numElements);
+   return data[(iaFront + index) % numCapacity];
 }
 template <class T>
 T& deque <T> ::operator[](size_t index)
 {
-   return *(new T);
+   assert(index < numElements);
+   return data[(iaFront + index) % numCapacity];
 }
 
 /*****************************************************
