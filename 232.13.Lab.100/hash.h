@@ -20,9 +20,10 @@
 #pragma once
 
 #include "list.h"     // because this->buckets[0] is a list
-#include <memory>     // for std::allocator
+#include <utility>  // for std::pair
 #include <functional> // for std::hash
-#include <cmath>      // for std::ceil
+#include "pair.h"     // for custom::pair
+#include <initializer_list> // for std::initializer_list
    
 
 class TestHash;             // forward declaration for Hash unit tests
@@ -41,38 +42,89 @@ public:
    //
    // Construct
    //
-   unordered_set() : numElements(0)
-   {
-   }
-   unordered_set(unordered_set& rhs) : numElements(0)
-   {
-   }
-   unordered_set(unordered_set&& rhs) : numElements(0)
-   {
-   }
-   template <class Iterator>
-   unordered_set(Iterator first, Iterator last) : numElements(0)
-   {
-   }
+	unordered_set() : numElements(0)
+	{
+	}
+
+	unordered_set(unordered_set& rhs) : numElements(0)
+	{
+		// copy each bucket using iterators (NO list copy constructor)
+		for (size_t i = 0; i < 10; ++i)
+		{
+			for (auto it = rhs.buckets[i].begin();
+				it != rhs.buckets[i].end();
+				++it)
+			{
+				buckets[i].push_back(*it);
+				++numElements;
+			}
+		}
+	}
+
+	unordered_set(unordered_set&& rhs) : numElements(0)
+	{
+		// steal each bucket
+		for (size_t i = 0; i < 10; ++i)
+			buckets[i].swap(rhs.buckets[i]);
+		// steal the element count
+		numElements = rhs.numElements;
+		rhs.numElements = 0;
+	}
+
+	template <class Iterator>
+	unordered_set(Iterator first, Iterator last) : numElements(0)
+	{
+		for (; first != last; ++first)
+		{
+			size_t i = bucket(*first);
+
+			// INSERT AT BACK (required by unit tests)
+			buckets[i].push_back(*first);
+			++numElements;
+		}
+	}
+
 
    //
    // Assign
    //
    unordered_set& operator=(unordered_set& rhs)
    {
-      return *this;
+	   // copy-and-swap idiom
+	   if (this != &rhs)
+	   {
+		   unordered_set temp(rhs); // uses copy constructor
+		   swap(temp);
+	   }
+	   return *this;
    }
+
    unordered_set& operator=(unordered_set&& rhs)
    {
-      return *this;
+	   // move-and-swap idiom
+	   if (this != &rhs)
+	   {
+		   swap(rhs);
+	   }
+	   return *this;
    }
+
    unordered_set& operator=(const std::initializer_list<T>& il)
    {
-      return *this;
+	   clear();
+	   for (const T& t : il)
+		   insert(t);
+	   return *this;
    }
+
    void swap(unordered_set& rhs)
    {
+	   for (size_t i = 0; i < 10; ++i)
+		   buckets[i].swap(rhs.buckets[i]);
+
+	   std::swap(numElements, rhs.numElements);
    }
+
 
    // 
    // Iterator
@@ -81,18 +133,29 @@ public:
    class local_iterator;
    iterator begin()
    {
-	  return iterator(buckets, buckets + 10, buckets[0].begin());
+	   // find the first non-empty bucket
+	   for (size_t i = 0; i < 10; ++i)
+		   if (!buckets[i].empty())
+			   // return iterator to the first element of that bucket
+			   return iterator(buckets + i, buckets + 10, buckets[i].begin());
+
+	   // all buckets are empty: return end()
+	   return end();
    }
    iterator end()
    {
-	  return iterator(buckets + 10, buckets + 10, typename custom::list<T>::iterator());
+	   // end iterator: pBucket and pBucketEnd both point past the last bucket
+	   return iterator(buckets + 10, buckets + 10,
+		   typename custom::list<T>::iterator());
    }
    local_iterator begin(size_t iBucket)
    {
-	  return local_iterator(buckets[iBucket].begin());
+	   // iterator to the first element in the specified bucket
+	   return local_iterator(buckets[iBucket].begin());
    }
    local_iterator end(size_t iBucket)
    {
+	   // iterator past the last element in the specified bucket
 	   return local_iterator(buckets[iBucket].end());
    }
 
@@ -117,6 +180,9 @@ public:
    //
    void clear() noexcept
    {
+	   for (size_t i = 0; i < 10; ++i)
+		   buckets[i].clear();
+	   numElements = 0;
    }
    iterator erase(const T& t);
 
@@ -309,7 +375,36 @@ private:
 template <typename T>
 typename unordered_set <T> ::iterator unordered_set<T>::erase(const T& t)
 {
-   return iterator();
+	// determine which bucket the value belongs to
+	size_t i = bucket(t);
+
+	// search the bucket for the value
+	for (auto it = buckets[i].begin(); it != buckets[i].end(); ++it)
+		if (*it == t)
+		{
+			// iterator to the element after the one being erased
+			auto next = it;
+			++next;
+
+			// remove the element from the bucket
+			buckets[i].erase(it);
+			--numElements;
+
+			// if there is another element in the same bucket, return it
+			if (next != buckets[i].end())
+				return iterator(buckets + i, buckets + 10, next);
+
+			// otherwise, find the next non-empty bucket
+			for (size_t j = i + 1; j < 10; ++j)
+				if (!buckets[j].empty())
+					return iterator(buckets + j, buckets + 10, buckets[j].begin());
+
+			// no more elements anywhere: return end()
+			return end();
+		}
+
+	// value not found: return end()
+	return end();
 }
 
 /*****************************************
@@ -317,13 +412,36 @@ typename unordered_set <T> ::iterator unordered_set<T>::erase(const T& t)
  * Insert one element into the hash
  ****************************************/
 template <typename T>
-custom::pair<typename custom::unordered_set<T>::iterator, bool> unordered_set<T>::insert(const T& t)
+custom::pair<typename custom::unordered_set<T>::iterator, bool>
+unordered_set<T>::insert(const T& t)
 {
-   return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(), true);
+	// determine which bucket the value belongs to
+	size_t i = bucket(t);
+
+	// search the bucket to prevent duplicates
+	for (auto it = buckets[i].begin(); it != buckets[i].end(); ++it)
+		if (*it == t)
+			// element already exists
+			return custom::pair<iterator, bool>(
+				iterator(buckets + i, buckets + 10, it),
+				false);
+
+	// INSERT AT FRONT (required by unit tests)
+	buckets[i].push_front(t);
+	++numElements;
+
+	// iterator must point to begin() of that bucket
+	return custom::pair<iterator, bool>(
+		iterator(buckets + i, buckets + 10, buckets[i].begin()),
+		true);
 }
+
 template <typename T>
-void unordered_set<T>::insert(const std::initializer_list<T> & il)
+void unordered_set<T>::insert(const std::initializer_list<T>& il)
 {
+	// insert each element from the initializer list
+	for (const T& t : il)
+		insert(t);
 }
 
 /*****************************************
@@ -333,7 +451,13 @@ void unordered_set<T>::insert(const std::initializer_list<T> & il)
 template <typename T>
 typename unordered_set <T> ::iterator unordered_set<T>::find(const T& t)
 {
-   return iterator();
+	size_t i = bucket(t);
+
+	for (auto it = buckets[i].begin(); it != buckets[i].end(); ++it)
+		if (*it == t)
+			return iterator(buckets + i, buckets + 10, it);
+
+	return end();
 }
 
 /*****************************************
@@ -343,6 +467,18 @@ typename unordered_set <T> ::iterator unordered_set<T>::find(const T& t)
 template <typename T>
 typename unordered_set <T> ::iterator & unordered_set<T>::iterator::operator ++ ()
 {
+	// move forward within the current bucket
+	++itList;
+
+	// if we reach the end of this bucket,
+	// move to the next non-empty bucket
+	while (pBucket != pBucketEnd && itList == pBucket->end())
+	{
+		++pBucket;
+		if (pBucket != pBucketEnd)
+			itList = pBucket->begin();
+	}
+
    return *this;
 }
 
@@ -353,6 +489,7 @@ typename unordered_set <T> ::iterator & unordered_set<T>::iterator::operator ++ 
 template <typename T>
 void swap(unordered_set<T>& lhs, unordered_set<T>& rhs)
 {
+	lhs.swap(rhs);
 }
 
 }
