@@ -41,17 +41,17 @@ public:
    //
    // Construct
    //
-   unordered_set()
+   unordered_set() : numElements(0)
    {
    }
-   unordered_set(unordered_set&  rhs) 
+   unordered_set(unordered_set& rhs) : numElements(0)
    {
    }
-   unordered_set(unordered_set&& rhs) 
+   unordered_set(unordered_set&& rhs) : numElements(0)
    {
    }
    template <class Iterator>
-   unordered_set(Iterator first, Iterator last)
+   unordered_set(Iterator first, Iterator last) : numElements(0)
    {
    }
 
@@ -81,19 +81,19 @@ public:
    class local_iterator;
    iterator begin()
    {
-      return iterator();
+	  return iterator(buckets, buckets + 10, buckets[0].begin());
    }
    iterator end()
    {
-      return iterator();
+	  return iterator(buckets + 10, buckets + 10, typename custom::list<T>::iterator());
    }
    local_iterator begin(size_t iBucket)
    {
-      return local_iterator();
+	  return local_iterator(buckets[iBucket].begin());
    }
    local_iterator end(size_t iBucket)
    {
-      return local_iterator();
+	   return local_iterator(buckets[iBucket].end());
    }
 
    //
@@ -101,7 +101,7 @@ public:
    //
    size_t bucket(const T& t)
    {
-      return 99;
+	   return std::hash<T>()(t) % 10;
    }
    iterator find(const T& t);
 
@@ -125,19 +125,19 @@ public:
    //
    size_t size() const 
    { 
-      return 99;
+	  return numElements;
    }
    bool empty() const 
    { 
-      return false;
+	  return numElements == 0;
    }
    size_t bucket_count() const 
    { 
-      return 100;
+	  return 10;
    }
    size_t bucket_size(size_t i) const
    {
-      return 99;
+	  return buckets[i].size();
    }
 
 private:
@@ -161,15 +161,20 @@ public:
    // 
    // Construct
    //
-   iterator()  
+   iterator()  : pBucket(nullptr),
+	   pBucketEnd(nullptr)
    {  
    }
    iterator(typename custom::list<T>* pBucket,
             typename custom::list<T>* pBucketEnd,
-            typename custom::list<T>::iterator itList)
+            typename custom::list<T>::iterator itList) : pBucket(pBucket),
+                                                        pBucketEnd(pBucketEnd),
+	   itList(itList)
    {
    }
-   iterator(const iterator& rhs) 
+   iterator(const iterator& rhs) : pBucket(rhs.pBucket),
+       pBucketEnd(rhs.pBucketEnd),
+	   itList(rhs.itList)
    { 
    }
 
@@ -178,19 +183,23 @@ public:
    //
    iterator& operator = (const iterator& rhs)
    {
-      return *this;
+	   pBucket = rhs.pBucket;
+	   pBucketEnd = rhs.pBucketEnd;
+       itList = rhs.itList;
+	   return *this;
+
    }
 
    //
    // Compare
    //
    bool operator != (const iterator& rhs) const 
-   { 
-      return true;
+   {
+	   return (pBucket != rhs.pBucket || itList != rhs.itList);
    }
    bool operator == (const iterator& rhs) const 
    { 
-      return true;
+	   return (pBucket == rhs.pBucket && itList == rhs.itList);
    }
 
    // 
@@ -198,7 +207,7 @@ public:
    //
    T& operator * ()
    {
-      return *(new T());
+	   return *itList;
    }
 
    //
@@ -207,7 +216,9 @@ public:
    iterator& operator ++ ();
    iterator operator ++ (int postfix)
    {
-      return *this;
+	   iterator temp = *this;
+	   ++(*this);
+	   return temp;
    }
 
 private:
@@ -232,13 +243,13 @@ public:
    // 
    // Construct
    //
-   local_iterator()  
+	local_iterator() : itList()
    {
    }
-   local_iterator(const typename custom::list<T>::iterator& itList) 
+   local_iterator(const typename custom::list<T>::iterator& itList) : itList(itList)
    {
    }
-   local_iterator(const local_iterator& rhs) 
+   local_iterator(const local_iterator& rhs) : itList(rhs.itList)
    { 
    }
 
@@ -247,7 +258,8 @@ public:
    //
    local_iterator& operator = (const local_iterator& rhs)
    {
-      return *this;
+	   itList = rhs.itList;
+	   return *this;
    }
 
    // 
@@ -255,11 +267,11 @@ public:
    //
    bool operator != (const local_iterator& rhs) const
    {
-      return true;
+	   return itList != rhs.itList;
    }
    bool operator == (const local_iterator& rhs) const
    {
-      return true;
+	   return itList == rhs.itList;
    }
 
    // 
@@ -267,7 +279,7 @@ public:
    //
    T& operator * ()
    {
-      return *(new T());
+	   return *itList;
    }
 
    // 
@@ -275,11 +287,14 @@ public:
    //
    local_iterator& operator ++ ()
    {
-      return *this;
+	   ++itList;
+	   return *this;
    }
    local_iterator operator ++ (int postfix)
    {
-      return *this;
+	   local_iterator temp = *this;
+	   ++(*this);
+	   return temp;
    }
 
 private:
