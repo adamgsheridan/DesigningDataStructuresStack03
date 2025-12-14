@@ -721,98 +721,95 @@ typename list <T> :: iterator  list <T> :: erase(const list <T> :: iterator & it
  *     COST   : O(1)
  ******************************************/
 template <typename T>
-typename list <T> :: iterator list <T> :: insert(list <T> :: iterator it,
-                                                 const T & data) 
+typename list<T>::iterator list<T>::insert(list<T>::iterator it, const T& data)
 {
-	// Create a new node
-	Node* pNew = new Node(data);
-    // Empty list case
-    if (pHead == nullptr && pTail == nullptr)
-    {
-        pHead = pNew;
-        pTail = pNew;
-        pNew->pNext = nullptr;
-        pNew->pPrev = nullptr;
-    }
-   // Insertion at the head
-    else if (it.p == pHead)
-    {
-        pNew->pNext = pHead;
-        pNew->pPrev = nullptr;
-        pHead->pPrev = pNew;
-        pHead = pNew;
-    }
-    // Insertion at the tail
-    else if (it.p == nullptr)
-    {
-        pNew->pNext = nullptr;
-        pNew->pPrev = pTail;
-        pTail->pNext = pNew;
-        pTail = pNew;
-    }
-    // Insertion in the middle
-    else
-    {
-        pNew->pNext = it.p;
-        pNew->pPrev = it.p->pPrev;
-        if (it.p->pPrev)
-            it.p->pPrev->pNext = pNew;
-		else
-			pHead = pNew;
-        it.p->pPrev = pNew;
-	}
-	numElements++;
-	return iterator(pNew);
+   Node* pNew = new Node(data);
+
+   // Case 1: empty list
+   if (pHead == nullptr)
+   {
+      pHead = pNew;
+      pTail = pNew;
+      pNew->pNext = nullptr;
+      pNew->pPrev = nullptr;
+   }
+   // Case 2: insert at head
+   else if (it.p == pHead)
+   {
+      pNew->pNext = pHead;
+      pNew->pPrev = nullptr;
+      pHead->pPrev = pNew;
+      pHead = pNew;
+   }
+   // Case 3: insert at tail (it == end())
+   else if (it.p == nullptr)
+   {
+      pNew->pNext = nullptr;
+      pNew->pPrev = pTail;
+      pTail->pNext = pNew;
+      pTail = pNew;
+   }
+   // Case 4: insert in the middle
+   else
+   {
+      pNew->pNext = it.p;
+      pNew->pPrev = it.p->pPrev;
+
+      it.p->pPrev->pNext = pNew;
+      it.p->pPrev = pNew;
+   }
+
+   numElements++;
+   return iterator(pNew);
 }
 
 
 
+/******************************************
+ * LIST :: INSERT (move version)
+ ******************************************/
 template <typename T>
-typename list <T> :: iterator list <T> :: insert(list <T> :: iterator it,
-   T && data)
+typename list<T>::iterator list<T>::insert(list<T>::iterator it, T&& data)
 {
-	// Create a new node
-	Node* pNew = new Node(std::move(data));
-	// Empty list case
-    if (pHead == nullptr && pTail == nullptr)
-    {
-        pHead = pNew;
-        pTail = pNew;
-        pNew->pNext = nullptr;
-        pNew->pPrev = nullptr;
+   Node* pNew = new Node(std::move(data));
 
-    }
-   // Insertion at the head
-    else if (it.p == pHead)
-    {
-        pNew->pNext = pHead;
-        pNew->pPrev = nullptr;
-        pHead->pPrev = pNew;
-        pHead = pNew;
-	}
-    // Insertion at the tail
-    else if (it.p == nullptr)
-    {
-        pNew->pNext = nullptr;
-        pNew->pPrev = pTail;
-        pTail->pNext = pNew;
-        pTail = pNew;
-	}
-    // Insertion in the middle
-    else
-    {
-        pNew->pNext = it.p;
-        pNew->pPrev = it.p->pPrev;
-        if (it.p->pPrev)
-            it.p->pPrev->pNext = pNew;
-        else
-			pHead = pNew;
-        it.p->pPrev = pNew;
-    }
-	numElements++;
-	return iterator(pNew);
+   // Case 1: empty list
+   if (pHead == nullptr)
+   {
+      pHead = pNew;
+      pTail = pNew;
+      pNew->pNext = nullptr;
+      pNew->pPrev = nullptr;
+   }
+   // Case 2: insert at head
+   else if (it.p == pHead)
+   {
+      pNew->pNext = pHead;
+      pNew->pPrev = nullptr;
+      pHead->pPrev = pNew;
+      pHead = pNew;
+   }
+   // Case 3: insert at tail (it == end())
+   else if (it.p == nullptr)
+   {
+      pNew->pNext = nullptr;
+      pNew->pPrev = pTail;
+      pTail->pNext = pNew;
+      pTail = pNew;
+   }
+   // Case 4: insert in the middle
+   else
+   {
+      pNew->pNext = it.p;
+      pNew->pPrev = it.p->pPrev;
+
+      it.p->pPrev->pNext = pNew;
+      it.p->pPrev = pNew;
+   }
+
+   numElements++;
+   return iterator(pNew);
 }
-
 /**********************************************
  * LIST :: assignment operator - MOVE
  * Copy one list onto another

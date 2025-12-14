@@ -425,25 +425,27 @@ template <typename T>
 custom::pair<typename custom::unordered_set<T>::iterator, bool>
 unordered_set<T>::insert(const T& t)
 {
-	// determine which bucket the value belongs to
-	size_t i = bucket(t);
+   // determine which bucket the value belongs to
+   size_t i = bucket(t);
 
-	// search the bucket to prevent duplicates
-	for (auto it = buckets[i].begin(); it != buckets[i].end(); ++it)
-		if (*it == t)
-			// element already exists
-			return custom::pair<iterator, bool>(
-				iterator(buckets + i, buckets + 10, it),
-				false);
+   // search the bucket to prevent duplicates
+   for (auto it = buckets[i].begin(); it != buckets[i].end(); ++it)
+      if (*it == t)
+         // element already exists
+         return custom::pair<iterator, bool>(
+            iterator(buckets + i, buckets + 10, it),
+            false);
 
-	// INSERT AT FRONT (required by unit tests)
-	buckets[i].push_front(t);
-	++numElements;
+   // INSERT AT BACK (this is what the test expects)
+   buckets[i].push_back(t);
+   ++numElements;
 
-	// iterator must point to begin() of that bucket
-	return custom::pair<iterator, bool>(
-		iterator(buckets + i, buckets + 10, buckets[i].begin()),
-		true);
+   // iterator must point to the last element in that bucket
+   auto itList = buckets[i].rbegin();   // iterator to last node (pTail)
+
+   return custom::pair<iterator, bool>(
+      iterator(buckets + i, buckets + 10, itList),
+      true);
 }
 
 template <typename T>
