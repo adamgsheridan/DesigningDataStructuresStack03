@@ -101,13 +101,23 @@ public:
 
    unordered_set& operator=(unordered_set&& rhs)
    {
-	   // move-and-swap idiom
-	   if (this != &rhs)
-	   {
-		   swap(rhs);
-	   }
-	   return *this;
+      if (this != &rhs)
+      {
+         // move each bucket
+         for (int i = 0; i < 10; ++i)
+            buckets[i] = std::move(rhs.buckets[i]);
+
+         // move element count
+         numElements = rhs.numElements;
+
+         // reset source
+         rhs.numElements = 0;
+         for (int i = 0; i < 10; ++i)
+            rhs.buckets[i].clear();
+      }
+      return *this;
    }
+
 
    unordered_set& operator=(const std::initializer_list<T>& il)
    {

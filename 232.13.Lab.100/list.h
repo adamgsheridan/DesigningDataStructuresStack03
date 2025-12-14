@@ -70,9 +70,10 @@ namespace custom
         //
 
         class  iterator;
-        iterator begin() { return iterator(pHead); }
-        iterator rbegin() { return iterator(); }
-        iterator end() { return iterator(); }
+        iterator begin() { return iterator(pHead); } 
+        iterator rbegin() { return iterator(pTail); } 
+        iterator end() { return iterator(nullptr); } 
+
 
         //
         // Access
